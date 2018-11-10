@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Microsoft.Z3.Experiments.App
 {
@@ -11,14 +12,24 @@ namespace Microsoft.Z3.Experiments.App
 
         private static void Run()
         {
-            using (Context ctx = new Context())
+            using (Context ctx = new Context(new Dictionary<string, string> { { "MODEL", "true" } }))
             {
                 Console.WriteLine(CheckSat(ctx, CreateExprContradiction(ctx)));
 
                 Console.WriteLine(CheckSat(ctx, CreateExprIsEmpty(ctx)));
 
+                Console.WriteLine(CheckSat(ctx, CreateExprIntervals(ctx)));
+
                 ctx.Dispose();
             }
+        }
+
+        private static BoolExpr CreateExprIntervals(Context ctx)
+        {
+            var varA = ctx.MkConst(ctx.MkSymbol("a"), ctx.IntSort);
+            return ctx.MkAnd(
+                ctx.MkGt((ArithExpr)varA, ctx.MkInt(10)),
+                ctx.MkLt((ArithExpr)varA, ctx.MkInt(12)));
         }
 
         private static BoolExpr CreateExprContradiction(Context ctx)
@@ -44,7 +55,8 @@ namespace Microsoft.Z3.Experiments.App
         {
             var solver = ctx.MkSolver();
             solver.Assert(eq);
-            return solver.Check();
+            var result = solver.Check();
+            return result;
         }
     }
 }
