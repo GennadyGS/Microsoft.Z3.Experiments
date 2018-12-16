@@ -20,9 +20,26 @@ namespace Microsoft.Z3.Experiments.App
 
                 Console.WriteLine(CheckSat(ctx, CreateExprIntervals(ctx)));
 
+                Console.WriteLine(CheckSat(ctx, CreateReal(ctx)));
+
+                Console.WriteLine(CheckSat(ctx, CreateContains(ctx)));
+
+                Console.WriteLine(CheckSat(ctx, CreateNotContains(ctx)));
+
                 ctx.Dispose();
             }
         }
+
+        private static BoolExpr CreateContains(Context ctx)
+        {
+            var varA = ctx.MkConst(ctx.MkSymbol("a"), ctx.StringSort);
+            return ctx.MkAnd(
+                ctx.MkEq(varA, ctx.MkString("abc")), 
+                ctx.MkContains((SeqExpr)varA, ctx.MkString("ac")));
+        }
+
+        private static BoolExpr CreateNotContains(Context ctx) => 
+            ctx.MkNot(CreateContains(ctx));
 
         private static BoolExpr CreateExprIntervals(Context ctx)
         {
@@ -39,6 +56,14 @@ namespace Microsoft.Z3.Experiments.App
                 ctx.MkEq(varA, ctx.MkString("1")),
                 ctx.MkNot(
                     ctx.MkEq(varA, ctx.MkString("1"))));
+        }
+
+        private static BoolExpr CreateReal(Context ctx)
+        {
+            var varA = ctx.MkRealConst("a");
+            return ctx.MkAnd(
+                ctx.MkGt(varA, ctx.MkReal(1)),
+                ctx.MkLe(varA, ctx.MkReal(10, 10)));
         }
 
         private static BoolExpr CreateExprIsEmpty(Context ctx)
