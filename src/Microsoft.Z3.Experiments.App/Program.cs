@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.Z3.Experiments.App
 {
@@ -14,30 +15,56 @@ namespace Microsoft.Z3.Experiments.App
         {
             using (Context ctx = new Context(new Dictionary<string, string> { { "MODEL", "true" } }))
             {
-                Console.WriteLine(CheckSat(ctx, CreateExprContradiction(ctx)));
+                CheckSat(ctx, CreateExprContradiction(ctx));
 
-                Console.WriteLine(CheckSat(ctx, CreateExprIsEmpty(ctx)));
+                CheckSat(ctx, CreateExprIsEmpty(ctx));
 
-                Console.WriteLine(CheckSat(ctx, CreateExprIntervals(ctx)));
+                CheckSat(ctx, CreateExprIntervals(ctx));
 
-                Console.WriteLine(CheckSat(ctx, CreateReal(ctx)));
+                CheckSat(ctx, CreateReal(ctx));
 
-                Console.WriteLine(CheckSat(ctx, CreateContains(ctx)));
+                CheckSat(ctx, CreateContains(ctx));
 
-                Console.WriteLine(CheckSat(ctx, CreateNotContains(ctx)));
+                CheckSat(ctx, CreateNotContains(ctx));
 
-                Console.WriteLine(CheckSat(ctx, CreateNullable(ctx)));
+                CheckSat(ctx, CreateNullable(ctx));
+
+                CheckSat(ctx, CreateSatCore(ctx));
 
                 ctx.Dispose();
             }
         }
 
-        private static Status CheckSat(Context ctx, BoolExpr eq)
+        private static BoolExpr[] CreateSatCore(Context ctx)
+        {
+            var varA = ctx.MkConst(ctx.MkSymbol("a"), ctx.StringSort);
+            return new[]
+            {
+                ctx.MkEq(varA, ctx.MkString("2")),
+                ctx.MkNot(
+                    ctx.MkEq(varA, ctx.MkString("2"))),
+                ctx.MkEq(varA, ctx.MkString("1")),
+                ctx.MkNot(
+                    ctx.MkEq(varA, ctx.MkString("1"))),
+            };
+        }
+
+        private static void CheckSat(Context ctx, params BoolExpr[] exprs)
         {
             var solver = ctx.MkSolver();
-            solver.Assert(eq);
-            var result = solver.Check();
-            return result;
+            for (var index = 0; index < exprs.Length; index++)
+            {
+                var expr = exprs[index];
+                solver.AssertAndTrack(
+                    expr, 
+                    (BoolExpr)ctx.MkConst($"p{index}", ctx.BoolSort ));
+            }
+            var status = solver.Check();
+            var unsatCore = solver.UnsatCore;
+            Console.WriteLine(solver);
+            Console.WriteLine(status);
+            Console.WriteLine($"UnsatCore:({string.Join(", ", unsatCore.Select(x => x.ToString()))})");
+            Console.WriteLine();
         }
 
         private static BoolExpr CreateContains(Context ctx)
@@ -91,8 +118,11 @@ namespace Microsoft.Z3.Experiments.App
             (DatatypeSort, Constructor, Constructor) CreateNullableSort(Sort sort)
             {
                 var nullConstr = ctx.MkConstructor("null", "isNull");
-                var valueConstr =
-                    ctx.MkConstructor("value", "hasValue", new[] {""}, new Sort[] {sort});
+                var valueConstr = ctx.MkConstructor(
+                    "value", 
+                    "hasValue", 
+                    new[] {"value"}, 
+                    new[] { sort });
                 var datatypeSort = ctx.MkDatatypeSort("Nullable", new[]
                 {
                     nullConstr, valueConstr
@@ -112,8 +142,8 @@ namespace Microsoft.Z3.Experiments.App
             var aIsNull = (BoolExpr)ctx.MkApp(nullConstructor2.TesterDecl, a);
             var aIsValue = (BoolExpr) ctx.MkApp(valueConstructor2.TesterDecl, a);
             return ctx.MkAnd(
-                    ctx.MkAnd(aIsValue, ctx.MkGe(aValue, ctx.MkInt(0))),
-                    aIsNull);
+                ctx.MkAnd(aIsValue, ctx.MkGe(aValue, ctx.MkInt(0))),
+                aIsNull);
         }
     }
 }
