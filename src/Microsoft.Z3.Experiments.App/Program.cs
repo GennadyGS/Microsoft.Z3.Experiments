@@ -26,8 +26,18 @@ namespace Microsoft.Z3.Experiments.App
 
                 Console.WriteLine(CheckSat(ctx, CreateNotContains(ctx)));
 
+                Console.WriteLine(CheckSat(ctx, CreateNullable(ctx)));
+
                 ctx.Dispose();
             }
+        }
+
+        private static Status CheckSat(Context ctx, BoolExpr eq)
+        {
+            var solver = ctx.MkSolver();
+            solver.Assert(eq);
+            var result = solver.Check();
+            return result;
         }
 
         private static BoolExpr CreateContains(Context ctx)
@@ -76,12 +86,34 @@ namespace Microsoft.Z3.Experiments.App
                 ctx.MkNot(ctx.MkEq(varA, ctx.MkString("NA"))));
         }
 
-        private static Status CheckSat(Context ctx, BoolExpr eq)
+        private static BoolExpr CreateNullable(Context ctx)
         {
-            var solver = ctx.MkSolver();
-            solver.Assert(eq);
-            var result = solver.Check();
-            return result;
+            (DatatypeSort, Constructor, Constructor) CreateNullableSort(Sort sort)
+            {
+                var nullConstr = ctx.MkConstructor("null", "isNull");
+                var valueConstr =
+                    ctx.MkConstructor("value", "hasValue", new[] {""}, new Sort[] {sort});
+                var datatypeSort = ctx.MkDatatypeSort("Nullable", new[]
+                {
+                    nullConstr, valueConstr
+                });
+                return (datatypeSort, valueConstr, nullConstr);
+            }
+
+            var (dataType, valueConstructor, nullConstructor) = CreateNullableSort(ctx.IntSort);
+            var (dataType2, valueConstructor2, nullConstructor2) = CreateNullableSort(ctx.RealSort);
+            var a = ctx.MkConst("a", dataType);
+            var b = ctx.MkConst("b", dataType2);
+            var const0 = ctx.MkApp(valueConstructor.ConstructorDecl, ctx.MkInt(0));
+            var const1 = ctx.MkApp(valueConstructor.ConstructorDecl, ctx.MkInt(1));
+            var constNull = ctx.MkApp(nullConstructor.ConstructorDecl);
+            var getValueDecl = valueConstructor.AccessorDecls[0];
+            var aValue = (ArithExpr) ctx.MkApp(getValueDecl, a);
+            var aIsNull = (BoolExpr)ctx.MkApp(nullConstructor2.TesterDecl, a);
+            var aIsValue = (BoolExpr) ctx.MkApp(valueConstructor2.TesterDecl, a);
+            return ctx.MkAnd(
+                    ctx.MkAnd(aIsValue, ctx.MkGe(aValue, ctx.MkInt(0))),
+                    aIsNull);
         }
     }
 }
