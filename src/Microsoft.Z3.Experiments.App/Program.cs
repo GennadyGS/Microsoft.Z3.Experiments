@@ -57,7 +57,7 @@ namespace Microsoft.Z3.Experiments.App
                 var expr = exprs[index];
                 solver.AssertAndTrack(
                     expr, 
-                    (BoolExpr)ctx.MkConst($"p{index}", ctx.BoolSort ));
+                    ctx.MkBoolConst($"p{index}"));
             }
             var status = solver.Check();
             var unsatCore = solver.UnsatCore;
