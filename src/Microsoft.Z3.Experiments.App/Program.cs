@@ -31,8 +31,23 @@ namespace Microsoft.Z3.Experiments.App
 
                 CheckSat(ctx, CreateSatCore(ctx));
 
+                CheckSimplify(ctx);
+
                 ctx.Dispose();
             }
+        }
+
+        private static void CheckSimplify(Context ctx)
+        {
+            var tactic = ctx.MkTactic("ctx-solver-simplify");
+            var a = ctx.MkRealConst("a");
+            var expr = ctx.MkOr(
+                ctx.MkGt(a, ctx.MkReal(1)),
+                ctx.MkGt(a, ctx.MkReal(2)));
+            var goal = ctx.MkGoal();
+            goal.Assert(expr);
+            var result = tactic.Apply(goal);
+            Console.WriteLine(result);
         }
 
         private static BoolExpr[] CreateSatCore(Context ctx)
@@ -55,17 +70,18 @@ namespace Microsoft.Z3.Experiments.App
             for (var index = 0; index < exprs.Length; index++)
             {
                 var expr = exprs[index];
-                solver.AssertAndTrack(
-                    expr, 
-                    ctx.MkBoolConst($"p{index}"));
+                solver.AssertAndTrack(expr, ctx.MkBoolConst($"{index}"));
             }
             var status = solver.Check();
             var unsatCore = solver.UnsatCore;
             Console.WriteLine(solver);
             Console.WriteLine(status);
+            var unsatCoreIds = unsatCore
+                .Select(expr => int.Parse(expr.FuncDecl.Name.ToString()))
+                .ToArray();
             Console.WriteLine($"UnsatCore:({string.Join(", ", unsatCore.Select(x => x.ToString()))})");
-            Console.WriteLine();
-        }
+            Console.WriteLine($"UnsatCoreIds:({string.Join(", ", unsatCoreIds.Select(x => x.ToString()))})");
+        }    
 
         private static BoolExpr CreateContains(Context ctx)
         {
