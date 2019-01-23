@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Contexts;
 
 namespace Microsoft.Z3.Experiments.App
 {
@@ -31,9 +32,25 @@ namespace Microsoft.Z3.Experiments.App
 
                 CheckSat(ctx, CreateSatCore(ctx));
 
+                CheckSat(ctx, CreateUnInterpretedFunction(ctx));
+
                 ctx.Dispose();
             }
         }
+
+        private static BoolExpr[] CreateUnInterpretedFunction(Context ctx)
+        {
+            var func = ctx.MkFuncDecl("Func", new []{ ctx.StringSort }, ctx.StringSort);
+            var x = ctx.MkConst("x", ctx.StringSort);
+            var y = ctx.MkConst("y", ctx.StringSort);
+            return new[]
+            {
+                ctx.MkNot(ctx.MkEq(
+                    ctx.MkApp(func, x),
+                    ctx.MkApp(func, y))),
+                ctx.MkEq(x, y),
+            };
+        } 
 
         private static BoolExpr[] CreateSatCore(Context ctx)
         {
