@@ -34,6 +34,10 @@ namespace Microsoft.Z3.Experiments.App
 
                 CheckSat(ctx, CreateUnInterpretedFunction(ctx));
 
+                CheckSat(ctx, CreateIsEmptyFunction(ctx));
+
+                // CheckSat(ctx, CreateLTrimFunction(ctx));
+
                 ctx.Dispose();
             }
         }
@@ -50,7 +54,46 @@ namespace Microsoft.Z3.Experiments.App
                     ctx.MkApp(func, y))),
                 ctx.MkEq(x, y),
             };
-        } 
+        }
+
+        private static BoolExpr[] CreateIsEmptyFunction(Context ctx)
+        {
+            var isEmptyFunc = ctx.MkFuncDecl("IsEmpty", new[] { ctx.StringSort }, ctx.MkBoolSort());
+            var x = (SeqExpr)ctx.MkConst("x", ctx.StringSort);
+            var isEmptyFuncRule = ctx.MkForall(
+                new Expr[] { x },
+                ctx.MkEq(
+                    ctx.MkReplace(x, ctx.MkString(" "), ctx.MkString("")),
+                    ctx.MkString("")));
+            return new[]
+            {
+                isEmptyFuncRule,
+                ctx.MkEq(
+                    ctx.MkApp(isEmptyFunc, ctx.MkString("123")),
+                    ctx.MkFalse()),
+            };
+        }
+
+        private static BoolExpr[] CreateLTrimFunction(Context ctx)
+        {
+            throw new NotImplementedException();
+            //var lTrimFunc = ctx.MkFuncDecl("LTrim", new[] { ctx.StringSort }, ctx.StringSort);
+            //var x = ctx.MkConst("x", ctx.StringSort);
+            //var y = ctx.MkConst("x", ctx.StringSort);
+            //var z = ctx.MkConst("x", ctx.StringSort);
+            //var lTrimRules = ctx.MkForall(
+            //    new []{ x, y, z },
+
+            //)
+            //var y = ctx.MkConst("y", ctx.StringSort);
+            //return new[]
+            //{
+            //    ctx.MkNot(ctx.MkEq(
+            //        ctx.MkApp(lTrimFunc, x),
+            //        ctx.MkApp(lTrimFunc, y))),
+            //    ctx.MkEq(x, y),
+            //};
+        }
 
         private static BoolExpr[] CreateSatCore(Context ctx)
         {
