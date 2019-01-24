@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Serialization;
 
 namespace Microsoft.Z3.Experiments.App
 {
@@ -13,7 +14,7 @@ namespace Microsoft.Z3.Experiments.App
 
         private static void Run()
         {
-            using (Context ctx = new Context(new Dictionary<string, string> { { "MODEL", "true" } }))
+            using (Context ctx = new Context(new Dictionary<string, string> { { "MODEL", "false" } }))
             {
                 CheckSat(ctx, CreateExprContradiction(ctx));
 
@@ -39,8 +40,53 @@ namespace Microsoft.Z3.Experiments.App
 
                 CheckSat(ctx, CreateLTrimFunction2(ctx));
 
+                CheckSat(ctx, CreateTrimFunction(ctx));
+
+                CheckSat(ctx, CreateUpperFunction(ctx));
+
                 ctx.Dispose();
             }
+        }
+
+        private static BoolExpr[] CreateUpperFunction(Context ctx)
+        {
+            var upperFunc = ctx.MkFuncDecl("upper", new[] { ctx.StringSort }, ctx.StringSort);
+            var x = (SeqExpr)ctx.MkConst("x", ctx.StringSort);
+            var y = (SeqExpr)ctx.MkConst("y", ctx.StringSort);
+            var rule = ctx.MkForall(
+                new Expr[] { x, y },
+                ctx.MkImplies(
+                    ctx.MkEq(ctx.MkApp(upperFunc, x), y),
+                    ctx.MkEq(ctx.MkLength(x), ctx.MkLength(y))));
+            var v1 = (SeqExpr)ctx.MkConst("v1", ctx.StringSort);
+            var v2 = (SeqExpr)ctx.MkConst("v2", ctx.StringSort);
+            return new[]
+            {
+                rule,
+                ctx.MkEq(ctx.MkApp(upperFunc, v1), v2),
+                ctx.MkEq(ctx.MkLength(v1), ctx.MkLength(v2)),
+            };
+        }
+
+        private static BoolExpr[] CreateTrimFunction(Context ctx)
+        {
+            var trimFunc = ctx.MkFuncDecl("Trim", new[] { ctx.StringSort }, ctx.StringSort);
+            var x = (SeqExpr)ctx.MkConst("x", ctx.StringSort);
+            var y = (SeqExpr)ctx.MkConst("y", ctx.StringSort);
+            var z = (SeqExpr)ctx.MkConst("z", ctx.StringSort);
+            var rule = ctx.MkForall(
+                new Expr[] { x, y },
+                ctx.MkImplies(
+                    ctx.MkEq(ctx.MkApp(trimFunc, x), y),
+                    ctx.MkContains(x, y)));
+            var v1 = (SeqExpr)ctx.MkConst("v1", ctx.StringSort);
+            var v2 = (SeqExpr)ctx.MkConst("v2", ctx.StringSort);
+            return new[]
+            {
+                rule,
+                ctx.MkEq(ctx.MkApp(trimFunc, v1), v2),
+                ctx.MkLt(ctx.MkLength(v1), ctx.MkLength(v2)),
+            };
         }
 
         private static BoolExpr[] CreateLTrimFunction2(Context ctx)
@@ -142,6 +188,7 @@ namespace Microsoft.Z3.Experiments.App
                 solver.AssertAndTrack(
                     expr, 
                     (BoolExpr)ctx.MkConst($"p{index}", ctx.BoolSort ));
+                //solver.Assert(expr);
             }
             Console.WriteLine(solver);
             var status = solver.Check();
