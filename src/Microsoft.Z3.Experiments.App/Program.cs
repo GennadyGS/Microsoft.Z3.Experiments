@@ -16,23 +16,23 @@ namespace Microsoft.Z3.Experiments.App
         {
             using (Context ctx = new Context(new Dictionary<string, string> { { "MODEL", "true" } }))
             {
-                CheckSat(ctx, CreateExprContradiction(ctx));
+                //CheckSat(ctx, CreateExprContradiction(ctx));
 
-                CheckSat(ctx, CreateExprIsEmpty(ctx));
+                //CheckSat(ctx, CreateExprIsEmpty(ctx));
 
-                CheckSat(ctx, CreateExprIntervals(ctx));
+                //CheckSat(ctx, CreateExprIntervals(ctx));
 
-                CheckSat(ctx, CreateReal(ctx));
+                //CheckSat(ctx, CreateReal(ctx));
 
-                CheckSat(ctx, CreateContains(ctx));
+                //CheckSat(ctx, CreateContains(ctx));
 
-                CheckSat(ctx, CreateNotContains(ctx));
+                //CheckSat(ctx, CreateNotContains(ctx));
 
-                CheckSat(ctx, CreateNullable(ctx));
+                //CheckSat(ctx, CreateNullable(ctx));
 
-                CheckSat(ctx, CreateSatCore(ctx));
+                //CheckSat(ctx, CreateSatCore(ctx));
 
-                CheckSat(ctx, CreateUnInterpretedFunction(ctx));
+                //CheckSat(ctx, CreateUnInterpretedFunction(ctx));
 
                 CheckSat(ctx, CreateIsEmptyFunction(ctx));
 
@@ -60,11 +60,19 @@ namespace Microsoft.Z3.Experiments.App
         {
             var isEmptyFunc = ctx.MkFuncDecl("IsEmpty", new[] { ctx.StringSort }, ctx.MkBoolSort());
             var x = (SeqExpr)ctx.MkConst("x", ctx.StringSort);
+            var y = (IntExpr)ctx.MkConst("y", ctx.IntSort);
             var isEmptyFuncRule = ctx.MkForall(
                 new Expr[] { x },
                 ctx.MkEq(
-                    ctx.MkReplace(x, ctx.MkString(" "), ctx.MkString("")),
-                    ctx.MkString("")));
+                    (BoolExpr) ctx.MkApp(isEmptyFunc, x),
+                    ctx.MkForall(
+                        new Expr[] { y },
+                        ctx.MkImplies(
+                            ctx.MkAnd(
+                                ctx.MkGe(y, ctx.MkInt(0)),
+                                ctx.MkLt(y, ctx.MkLength(x))
+                            ),
+                            ctx.MkEq(ctx.MkAt(x, y), ctx.MkString(" "))))));
             return new[]
             {
                 isEmptyFuncRule,
