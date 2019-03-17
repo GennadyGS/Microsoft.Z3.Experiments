@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Serialization;
 
 namespace Microsoft.Z3.Experiments.App
 {
@@ -42,7 +41,7 @@ namespace Microsoft.Z3.Experiments.App
 
                 CheckSat(ctx, CreateTrimFunction(ctx));
 
-                CheckSat(ctx, CreateUpperFunction(ctx));
+                // CheckSat(ctx, CreateUpperFunction(ctx));
 
                 ctx.Dispose();
             }
