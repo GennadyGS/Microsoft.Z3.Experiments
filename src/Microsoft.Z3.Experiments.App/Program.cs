@@ -17,6 +17,8 @@ namespace Microsoft.Z3.Experiments.App
             {
                 CheckSat(ctx, CreateExprContradiction(ctx));
 
+                CheckSat(ctx, CreateBool(ctx));
+
                 CheckSat(ctx, CreateExprIsEmpty(ctx));
 
                 CheckSat(ctx, CreateExprIntervals(ctx));
@@ -35,6 +37,12 @@ namespace Microsoft.Z3.Experiments.App
 
                 ctx.Dispose();
             }
+        }
+
+        private static BoolExpr CreateBool(Context ctx)
+        {
+            var varA = ctx.MkConst(ctx.MkSymbol("a"), ctx. BoolSort);
+            return ctx.MkEq(varA, ctx.MkTrue());
         }
 
         private static void CheckSimplify(Context ctx)
@@ -81,7 +89,13 @@ namespace Microsoft.Z3.Experiments.App
                 .ToArray();
             Console.WriteLine($"UnsatCore:({string.Join(", ", unsatCore.Select(x => x.ToString()))})");
             Console.WriteLine($"UnsatCoreIds:({string.Join(", ", unsatCoreIds.Select(x => x.ToString()))})");
-        }    
+            if (status == Status.SATISFIABLE)
+            {
+                Console.WriteLine($"Model:({solver.Model})");
+                Expr x = solver.Model.Consts.First().Value;
+            }
+            Console.WriteLine("----------------------------------");
+        }
 
         private static BoolExpr CreateContains(Context ctx)
         {
