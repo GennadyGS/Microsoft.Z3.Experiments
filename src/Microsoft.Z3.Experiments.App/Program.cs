@@ -243,8 +243,8 @@ namespace Microsoft.Z3.Experiments.App
                     Console.WriteLine($"Model:({solver.Model})");
                     Expr x = solver.Model.Consts.First().Value;
                 }
-                Console.WriteLine("----------------------------------");
             }
+            Console.WriteLine("----------------------------------");
         }
 
         private static BoolExpr CreateContains(Context ctx)
