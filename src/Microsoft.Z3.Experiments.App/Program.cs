@@ -13,7 +13,7 @@ namespace Microsoft.Z3.Experiments.App
 
         private static void Run()
         {
-            using (Context ctx = new Context(new Dictionary<string, string> { { "MODEL", "true" } }))
+            using (Context ctx = new Context(new Dictionary<string, string> { { "MODEL", "false" } }))
             {
                 CheckSat(ctx, CreateExprContradiction(ctx));
 
@@ -33,10 +33,152 @@ namespace Microsoft.Z3.Experiments.App
 
                 CheckSat(ctx, CreateSatCore(ctx));
 
+                CheckSat(ctx, CreateUnInterpretedFunction(ctx));
+
+                CheckSat(ctx, CreateIsEmptyFunction(ctx));
+
+                //CheckSat(ctx, CreateLTrimFunction(ctx));
+
+                CheckSat(ctx, CreateLTrimFunction2(ctx));
+
+                CheckSat(ctx, CreateTrimFunction(ctx));
+
+                // CheckSat(ctx, CreateUpperFunction(ctx));
+
+                CheckSat(ctx, CreateAlphaNumeric(ctx));
+
                 CheckSimplify(ctx);
 
                 ctx.Dispose();
             }
+        }
+
+        private static BoolExpr CreateAlphaNumeric(Context ctx) =>
+            ctx.MkInRe(
+                (SeqExpr)ctx.MkConst("x", ctx.StringSort),
+                ctx.MkLoop(
+                    ctx.MkUnion(
+                        ctx.MkRange(ctx.MkString("0"), ctx.MkString("9")),
+                        ctx.MkRange(ctx.MkString("A"), ctx.MkString("Z")),
+                        ctx.MkRange(ctx.MkString("a"), ctx.MkString("z"))),
+                    3, 
+                    5));
+
+        private static BoolExpr[] CreateUpperFunction(Context ctx)
+        {
+            var upperFunc = ctx.MkFuncDecl("upper", new[] { ctx.StringSort }, ctx.StringSort);
+            var x = (SeqExpr)ctx.MkConst("x", ctx.StringSort);
+            var y = (SeqExpr)ctx.MkConst("y", ctx.StringSort);
+            var rule = ctx.MkForall(
+                new Expr[] { x, y },
+                ctx.MkImplies(
+                    ctx.MkEq(ctx.MkApp(upperFunc, x), y),
+                    ctx.MkEq(ctx.MkLength(x), ctx.MkLength(y))));
+            var v1 = (SeqExpr)ctx.MkConst("v1", ctx.StringSort);
+            var v2 = (SeqExpr)ctx.MkConst("v2", ctx.StringSort);
+            return new[]
+            {
+                rule,
+                ctx.MkEq(ctx.MkApp(upperFunc, v1), v2),
+                ctx.MkEq(ctx.MkLength(v1), ctx.MkLength(v2)),
+            };
+        }
+
+        private static BoolExpr[] CreateTrimFunction(Context ctx)
+        {
+            var trimFunc = ctx.MkFuncDecl("Trim", new[] { ctx.StringSort }, ctx.StringSort);
+            var x = (SeqExpr)ctx.MkConst("x", ctx.StringSort);
+            var y = (SeqExpr)ctx.MkConst("y", ctx.StringSort);
+            var z = (SeqExpr)ctx.MkConst("z", ctx.StringSort);
+            var rule = ctx.MkForall(
+                new Expr[] { x, y },
+                ctx.MkImplies(
+                    ctx.MkEq(ctx.MkApp(trimFunc, x), y),
+                    ctx.MkContains(x, y)));
+            var v1 = (SeqExpr)ctx.MkConst("v1", ctx.StringSort);
+            var v2 = (SeqExpr)ctx.MkConst("v2", ctx.StringSort);
+            return new[]
+            {
+                rule,
+                ctx.MkEq(ctx.MkApp(trimFunc, v1), v2),
+                ctx.MkLt(ctx.MkLength(v1), ctx.MkLength(v2)),
+            };
+        }
+
+        private static BoolExpr[] CreateLTrimFunction2(Context ctx)
+        {
+            var lTrimFunc = ctx.MkFuncDecl("lTrim", new[] { ctx.StringSort }, ctx.StringSort);
+            var x = (SeqExpr)ctx.MkConst("x", ctx.StringSort);
+            var y = (SeqExpr)ctx.MkConst("y", ctx.StringSort);
+            var rule = ctx.MkForall(
+                new Expr[] { x, y },
+                ctx.MkImplies(
+                    ctx.MkEq(ctx.MkApp(lTrimFunc, x), y),
+                    ctx.MkSuffixOf(y, x)));
+            var v1 = (SeqExpr)ctx.MkConst("v1", ctx.StringSort);
+            var v2 = (SeqExpr)ctx.MkConst("v2", ctx.StringSort);
+            return new[]
+            {
+                rule,
+                ctx.MkEq(ctx.MkApp(lTrimFunc, v1), v2),
+                ctx.MkLe(ctx.MkLength(v1), ctx.MkLength(v2)),
+            };
+        }
+
+        private static BoolExpr[] CreateUnInterpretedFunction(Context ctx)
+        {
+            var func = ctx.MkFuncDecl("Func", new []{ ctx.StringSort }, ctx.StringSort);
+            var x = ctx.MkConst("x", ctx.StringSort);
+            var y = ctx.MkConst("y", ctx.StringSort);
+            return new[]
+            {
+                ctx.MkNot(ctx.MkEq(
+                    ctx.MkApp(func, x),
+                    ctx.MkApp(func, y))),
+                ctx.MkEq(x, y),
+            };
+        }
+
+        private static BoolExpr[] CreateIsEmptyFunction(Context ctx)
+        {
+            var isEmptyFunc = ctx.MkFuncDecl("IsEmpty", new[] { ctx.StringSort }, ctx.MkBoolSort());
+            var x = (SeqExpr)ctx.MkConst("x", ctx.StringSort);
+            var isEmptyFuncRule = ctx.MkForall(
+                new Expr[] { x },
+                ctx.MkEq(
+                    (BoolExpr) ctx.MkApp(isEmptyFunc, x),
+                    ctx.MkInRe(x, ctx.MkToRe(ctx.MkString(@"\s*")))));
+            return new[]
+            {
+                isEmptyFuncRule,
+                ctx.MkEq(
+                    ctx.MkApp(isEmptyFunc, ctx.MkString("   ")),
+                    ctx.MkFalse()),
+            };
+        }
+
+        private static BoolExpr[] CreateLTrimFunction(Context ctx)
+        {
+            var lTrimFunc = ctx.MkFuncDecl("lTrim", new[] { ctx.StringSort }, ctx.StringSort);
+            var x = (SeqExpr)ctx.MkConst("x", ctx.StringSort);
+            var y = (SeqExpr)ctx.MkConst("y", ctx.StringSort);
+            var z = (SeqExpr)ctx.MkConst("z", ctx.StringSort);
+            var rule = ctx.MkForall(
+                new Expr[] {x, y, z},
+                ctx.MkImplies(
+                    ctx.MkAnd(
+                        ctx.MkEq(
+                            ctx.MkConcat(z, y),
+                            x),
+                        ctx.MkInRe(z, ctx.MkToRe(ctx.MkString(@"\s*")))),
+                    ctx.MkEq(ctx.MkApp(lTrimFunc, x), y)));
+            return new[]
+            {
+                rule,
+                ctx.MkEq(
+                    ctx.MkApp(lTrimFunc, ctx.MkString(" 123")),
+                    ctx.MkString("3")),
+            };
         }
 
         private static BoolExpr CreateBool(Context ctx)
@@ -80,21 +222,29 @@ namespace Microsoft.Z3.Experiments.App
                 var expr = exprs[index];
                 solver.AssertAndTrack(expr, ctx.MkBoolConst($"{index}"));
             }
-            var status = solver.Check();
-            var unsatCore = solver.UnsatCore;
             Console.WriteLine(solver);
+            var status = solver.Check();
             Console.WriteLine(status);
-            var unsatCoreIds = unsatCore
-                .Select(expr => int.Parse(expr.FuncDecl.Name.ToString()))
-                .ToArray();
-            Console.WriteLine($"UnsatCore:({string.Join(", ", unsatCore.Select(x => x.ToString()))})");
-            Console.WriteLine($"UnsatCoreIds:({string.Join(", ", unsatCoreIds.Select(x => x.ToString()))})");
             if (status == Status.SATISFIABLE)
             {
-                Console.WriteLine($"Model:({solver.Model})");
-                Expr x = solver.Model.Consts.First().Value;
+                var model = solver.Model;
+                Console.WriteLine($"Model:({model})");
             }
-            Console.WriteLine("----------------------------------");
+            else
+            {
+                var unsatCore = solver.UnsatCore;
+                var unsatCoreIds = unsatCore
+                    .Select(expr => int.Parse(expr.FuncDecl.Name.ToString()))
+                    .ToArray();
+                Console.WriteLine($"UnsatCore:({string.Join(", ", unsatCore.Select(x => x.ToString()))})");
+                Console.WriteLine($"UnsatCoreIds:({string.Join(", ", unsatCoreIds.Select(x => x.ToString()))})");
+                if (status == Status.SATISFIABLE)
+                {
+                    Console.WriteLine($"Model:({solver.Model})");
+                    Expr x = solver.Model.Consts.First().Value;
+                }
+                Console.WriteLine("----------------------------------");
+            }
         }
 
         private static BoolExpr CreateContains(Context ctx)
