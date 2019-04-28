@@ -43,9 +43,22 @@ namespace Microsoft.Z3.Experiments.App
 
                 // CheckSat(ctx, CreateUpperFunction(ctx));
 
+                CheckSat(ctx, CreateAlphaNumeric(ctx));
+
                 ctx.Dispose();
             }
         }
+
+        private static BoolExpr CreateAlphaNumeric(Context ctx) =>
+            ctx.MkInRe(
+                (SeqExpr)ctx.MkConst("x", ctx.StringSort),
+                ctx.MkLoop(
+                    ctx.MkUnion(
+                        ctx.MkRange(ctx.MkString("0"), ctx.MkString("9")),
+                        ctx.MkRange(ctx.MkString("A"), ctx.MkString("Z")),
+                        ctx.MkRange(ctx.MkString("a"), ctx.MkString("z"))),
+                    3, 
+                    5));
 
         private static BoolExpr[] CreateUpperFunction(Context ctx)
         {
