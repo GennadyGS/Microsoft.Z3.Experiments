@@ -47,22 +47,13 @@ namespace Microsoft.Z3.Experiments.App
 
                 CheckSat(ctx, CreateAlphaNumeric(ctx));
 
+                CheckSat(ctx, CreateIntToString(ctx));
+
                 CheckSimplify(ctx);
 
                 ctx.Dispose();
             }
         }
-
-        private static BoolExpr CreateAlphaNumeric(Context ctx) =>
-            ctx.MkInRe(
-                (SeqExpr)ctx.MkConst("x", ctx.StringSort),
-                ctx.MkLoop(
-                    ctx.MkUnion(
-                        ctx.MkRange(ctx.MkString("0"), ctx.MkString("9")),
-                        ctx.MkRange(ctx.MkString("A"), ctx.MkString("Z")),
-                        ctx.MkRange(ctx.MkString("a"), ctx.MkString("z"))),
-                    3, 
-                    5));
 
         private static BoolExpr[] CreateUpperFunction(Context ctx)
         {
@@ -238,11 +229,6 @@ namespace Microsoft.Z3.Experiments.App
                     .ToArray();
                 Console.WriteLine($"UnsatCore:({string.Join(", ", unsatCore.Select(x => x.ToString()))})");
                 Console.WriteLine($"UnsatCoreIds:({string.Join(", ", unsatCoreIds.Select(x => x.ToString()))})");
-                if (status == Status.SATISFIABLE)
-                {
-                    Console.WriteLine($"Model:({solver.Model})");
-                    Expr x = solver.Model.Consts.First().Value;
-                }
             }
             Console.WriteLine("----------------------------------");
         }
@@ -324,6 +310,23 @@ namespace Microsoft.Z3.Experiments.App
             return ctx.MkAnd(
                 ctx.MkAnd(aIsValue, ctx.MkGe(aValue, ctx.MkInt(0))),
                 aIsNull);
+        }
+
+        private static BoolExpr CreateAlphaNumeric(Context ctx) =>
+            ctx.MkInRe(
+                (SeqExpr)ctx.MkConst("x", ctx.StringSort),
+                ctx.MkLoop(
+                    ctx.MkUnion(
+                        ctx.MkRange(ctx.MkString("0"), ctx.MkString("9")),
+                        ctx.MkRange(ctx.MkString("A"), ctx.MkString("Z")),
+                        ctx.MkRange(ctx.MkString("a"), ctx.MkString("z"))),
+                    3, 
+                    5));
+
+        private static BoolExpr CreateIntToString(Context ctx)
+        {
+            var x = ctx.MkConst("x", ctx.IntSort);
+            return ctx.MkEq(ctx.IntToString(x), ctx.MkString("4"));
         }
     }
 }
