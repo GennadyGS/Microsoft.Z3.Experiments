@@ -51,7 +51,11 @@ namespace Microsoft.Z3.Experiments.App
 
                 CheckSimplify(ctx);
 
-                ctx.Dispose();
+                CheckSat(ctx, CreateNullable2(ctx));
+
+                CheckSat(ctx, CreateNullable3(ctx));
+
+                CheckSat(ctx, CreateFunctionAxiom(ctx));
             }
         }
 
@@ -279,34 +283,41 @@ namespace Microsoft.Z3.Experiments.App
                 ctx.MkNot(ctx.MkEq(varA, ctx.MkString("NA"))));
         }
 
+        private static BoolExpr CreateNullable2(Context ctx)
+        {
+            var (dataType, valueConstructor, _) = CreateNullableSort(ctx.IntSort, ctx);
+            var a = ctx.MkConst("a", dataType);
+            var b = ctx.MkConst("b", dataType);
+            var constant = ctx.MkApp(valueConstructor.ConstructorDecl, ctx.MkInt(42));
+            return ctx.MkAnd(
+                ctx.MkEq(a, constant),
+                ctx.MkEq(a, b));
+        }
+
+        private static BoolExpr CreateNullable3(Context ctx)
+        {
+            var (dataType, _, nullConstructor) = CreateNullableSort(ctx.IntSort, ctx);
+            var a = ctx.MkConst("a", dataType);
+            var b = ctx.MkConst("b", dataType);
+            var nullConstant = ctx.MkApp(nullConstructor.ConstructorDecl);
+            return ctx.MkAnd(
+                ctx.MkEq(a, nullConstant),
+                ctx.MkEq(a, b));
+        }
+
         private static BoolExpr CreateNullable(Context ctx)
         {
-            (DatatypeSort, Constructor, Constructor) CreateNullableSort(Sort sort)
-            {
-                var nullConstr = ctx.MkConstructor("null", "isNull");
-                var valueConstr = ctx.MkConstructor(
-                    "value", 
-                    "hasValue", 
-                    new[] {"value"}, 
-                    new[] { sort });
-                var datatypeSort = ctx.MkDatatypeSort("Nullable", new[]
-                {
-                    nullConstr, valueConstr
-                });
-                return (datatypeSort, valueConstr, nullConstr);
-            }
-
-            var (dataType, valueConstructor, nullConstructor) = CreateNullableSort(ctx.IntSort);
-            var (dataType2, valueConstructor2, nullConstructor2) = CreateNullableSort(ctx.RealSort);
+            var (dataType, valueConstructor, nullConstructor) = CreateNullableSort(ctx.IntSort, ctx);
+            var (dataType2, valueConstructor2, nullConstructor2) = CreateNullableSort(ctx.RealSort, ctx);
             var a = ctx.MkConst("a", dataType);
             var b = ctx.MkConst("b", dataType2);
             var const0 = ctx.MkApp(valueConstructor.ConstructorDecl, ctx.MkInt(0));
             var const1 = ctx.MkApp(valueConstructor.ConstructorDecl, ctx.MkInt(1));
             var constNull = ctx.MkApp(nullConstructor.ConstructorDecl);
             var getValueDecl = valueConstructor.AccessorDecls[0];
-            var aValue = (ArithExpr) ctx.MkApp(getValueDecl, a);
+            var aValue = (ArithExpr)ctx.MkApp(getValueDecl, a);
             var aIsNull = (BoolExpr)ctx.MkApp(nullConstructor2.TesterDecl, a);
-            var aIsValue = (BoolExpr) ctx.MkApp(valueConstructor2.TesterDecl, a);
+            var aIsValue = (BoolExpr)ctx.MkApp(valueConstructor2.TesterDecl, a);
             return ctx.MkAnd(
                 ctx.MkAnd(aIsValue, ctx.MkGe(aValue, ctx.MkInt(0))),
                 aIsNull);
@@ -327,6 +338,33 @@ namespace Microsoft.Z3.Experiments.App
         {
             var x = ctx.MkConst("x", ctx.IntSort);
             return ctx.MkEq(ctx.IntToString(x), ctx.MkString("4"));
+        }
+
+        private static (DatatypeSort, Constructor, Constructor) CreateNullableSort(Sort sort, Context ctx)
+        {
+            var mkConstructor = ctx.MkConstructor("null", "isNull");
+            var valueConstructor = ctx.MkConstructor("value", "hasValue", new[] {"value"}, new[] {sort});
+            var dataTypeSort = ctx.MkDatatypeSort("Nullable", new[] {mkConstructor, valueConstructor});
+            return (dataTypeSort, valueConstructor, mkConstructor);
+        }
+
+        private static BoolExpr[] CreateFunctionAxiom(Context ctx)
+        {
+            var func1 = ctx.MkFuncDecl("func1", new[] { ctx.StringSort }, ctx.BoolSort);
+            var func2 = ctx.MkFuncDecl("func2", Array.Empty<Sort>(), ctx.BoolSort);
+            var x = (SeqExpr)ctx.MkConst("x", ctx.StringSort);
+            var rule = ctx.MkForall(
+                new Expr[] { x },
+                ctx.MkImplies(
+                    ctx.MkApp(func1, x) as BoolExpr, 
+                    ctx.MkNot(ctx.MkApp(func2) as BoolExpr)));
+            var v = (SeqExpr)ctx.MkConst("v", ctx.StringSort);
+            return new[]
+            {
+                rule,
+                ctx.MkApp(func1, v) as BoolExpr,
+                ctx.MkApp(func2) as BoolExpr,
+            };
         }
     }
 }
