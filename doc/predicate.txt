@@ -1,0 +1,13 @@
+Lambda (step,
+        IfThenElse (IfThenElse (Call (None, next,
+                                      [NewUnionCase (Cons, Value ("up"),
+                                                     NewUnionCase (Empty))]),
+                                Call (None, op_Equality,
+                                      [step, NewUnionCase (Up)]), Value (false)),
+                    Value (true),
+                    IfThenElse (Call (None, next,
+                                      [NewUnionCase (Cons, Value ("down"),
+                                                     NewUnionCase (Empty))]),
+                                Call (None, op_Equality,
+                                      [step, NewUnionCase (Down)]),
+                                Value (false))))
