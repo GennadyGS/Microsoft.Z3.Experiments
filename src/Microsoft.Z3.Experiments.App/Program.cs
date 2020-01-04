@@ -47,6 +47,8 @@ namespace Microsoft.Z3.Experiments.App
 
                 CheckSat(ctx, CreateAlphaNumeric(ctx));
 
+                CheckSat(ctx, CreateNonAlphaNumeric(ctx));
+
                 CheckSat(ctx, CreateIntToString(ctx));
 
                 CheckSimplify(ctx);
@@ -333,6 +335,25 @@ namespace Microsoft.Z3.Experiments.App
                         ctx.MkRange(ctx.MkString("a"), ctx.MkString("z"))),
                     3, 
                     5));
+
+        private static BoolExpr CreateNonAlphaNumeric(Context ctx)
+        {
+            SeqExpr x = (SeqExpr)ctx.MkConst("x", ctx.StringSort);
+            return 
+                ctx.MkAnd(
+                    ctx.MkEq(x, ctx.MkString("11111")),
+                    ctx.MkOr(
+                        ctx.MkLt(ctx.MkLength(x), ctx.MkInt(3)),
+                        ctx.MkGt(ctx.MkLength(x), ctx.MkInt(5)),
+                        ctx.MkInRe(
+                            x,
+                            ctx.MkConcat(
+                                ctx.MkFullRe(ctx.MkReSort(ctx.StringSort)),
+                                    ctx.MkUnion(
+                                        ctx.MkRange(ctx.MkString("\\x00"), ctx.MkString("\\x2F")),
+                                        ctx.MkRange(ctx.MkString("\\x3A"), ctx.MkString("\\xFF"))),
+                                ctx.MkFullRe(ctx.MkReSort(ctx.StringSort))))));
+        }
 
         private static BoolExpr CreateIntToString(Context ctx)
         {
