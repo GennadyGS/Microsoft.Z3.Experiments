@@ -13,213 +13,213 @@ namespace Microsoft.Z3.Experiments.App
 
         private static void Run()
         {
-            using (Context ctx = new Context(new Dictionary<string, string> { { "MODEL", "false" } }))
+            using (Context context = new Context(new Dictionary<string, string> { { "MODEL", "false" } }))
             {
-                CheckSat(ctx, CreateExprContradiction(ctx));
+                CheckSat(context, CreateExprContradiction(context));
 
-                CheckSat(ctx, CreateBool(ctx));
+                CheckSat(context, CreateBool(context));
 
-                CheckSat(ctx, CreateExprIsEmpty(ctx));
+                CheckSat(context, CreateExprIsEmpty(context));
 
-                CheckSat(ctx, CreateExprIntervals(ctx));
+                CheckSat(context, CreateExprIntervals(context));
 
-                CheckSat(ctx, CreateReal(ctx));
+                CheckSat(context, CreateReal(context));
 
-                CheckSat(ctx, CreateContains(ctx));
+                CheckSat(context, CreateContains(context));
 
-                CheckSat(ctx, CreateNotContains(ctx));
+                CheckSat(context, CreateNotContains(context));
 
-                CheckSat(ctx, CreateNullable(ctx));
+                CheckSat(context, CreateNullable(context));
 
-                CheckSat(ctx, CreateSatCore(ctx));
+                CheckSat(context, CreateSatCore(context));
 
-                CheckSat(ctx, CreateUnInterpretedFunction(ctx));
+                CheckSat(context, CreateUnInterpretedFunction(context));
 
-                CheckSat(ctx, CreateIsEmptyFunction(ctx));
+                CheckSat(context, CreateIsEmptyFunction(context));
 
-                //CheckSat(ctx, CreateLTrimFunction(ctx));
+                //CheckSat(context, CreateLTrimFunction(context));
 
-                CheckSat(ctx, CreateLTrimFunction2(ctx));
+                CheckSat(context, CreateLTrimFunction2(context));
 
-                CheckSat(ctx, CreateTrimFunction(ctx));
+                CheckSat(context, CreateTrimFunction(context));
 
-                // CheckSat(ctx, CreateUpperFunction(ctx));
+                // CheckSat(context, CreateUpperFunction(context));
 
-                CheckSat(ctx, CreateIntToString(ctx));
+                CheckSat(context, CreateIntToString(context));
 
-                CheckSimplify(ctx);
+                CheckSimplify(context);
 
-                CheckSat(ctx, CreateNullable2(ctx));
+                CheckSat(context, CreateNullable2(context));
 
-                CheckSat(ctx, CreateNullable3(ctx));
+                CheckSat(context, CreateNullable3(context));
 
-                CheckSat(ctx, CreateFunctionAxiom(ctx));
+                CheckSat(context, CreateFunctionAxiom(context));
 
-                CheckSat(ctx, CreateAlphaNumeric(ctx));
+                CheckSat(context, CreateAlphaNumeric(context));
 
-                CheckSat(ctx, CreateNonAlphaNumeric(ctx));
+                CheckSat(context, CreateNonAlphaNumeric(context));
 
-                CheckSat(ctx, CreateNonAlphaNumeric2(ctx));
+                CheckSat(context, CreateNonAlphaNumeric2(context));
             }
         }
 
-        private static BoolExpr[] CreateUpperFunction(Context ctx)
+        private static BoolExpr[] CreateUpperFunction(Context context)
         {
-            var upperFunc = ctx.MkFuncDecl("upper", new[] { ctx.StringSort }, ctx.StringSort);
-            var x = (SeqExpr)ctx.MkConst("x", ctx.StringSort);
-            var y = (SeqExpr)ctx.MkConst("y", ctx.StringSort);
-            var rule = ctx.MkForall(
+            var upperFunc = context.MkFuncDecl("upper", new[] { context.StringSort }, context.StringSort);
+            var x = (SeqExpr)context.MkConst("x", context.StringSort);
+            var y = (SeqExpr)context.MkConst("y", context.StringSort);
+            var rule = context.MkForall(
                 new Expr[] { x, y },
-                ctx.MkImplies(
-                    ctx.MkEq(ctx.MkApp(upperFunc, x), y),
-                    ctx.MkEq(ctx.MkLength(x), ctx.MkLength(y))));
-            var v1 = (SeqExpr)ctx.MkConst("v1", ctx.StringSort);
-            var v2 = (SeqExpr)ctx.MkConst("v2", ctx.StringSort);
+                context.MkImplies(
+                    context.MkEq(context.MkApp(upperFunc, x), y),
+                    context.MkEq(context.MkLength(x), context.MkLength(y))));
+            var v1 = (SeqExpr)context.MkConst("v1", context.StringSort);
+            var v2 = (SeqExpr)context.MkConst("v2", context.StringSort);
             return new[]
             {
                 rule,
-                ctx.MkEq(ctx.MkApp(upperFunc, v1), v2),
-                ctx.MkEq(ctx.MkLength(v1), ctx.MkLength(v2)),
+                context.MkEq(context.MkApp(upperFunc, v1), v2),
+                context.MkEq(context.MkLength(v1), context.MkLength(v2)),
             };
         }
 
-        private static BoolExpr[] CreateTrimFunction(Context ctx)
+        private static BoolExpr[] CreateTrimFunction(Context context)
         {
-            var trimFunc = ctx.MkFuncDecl("Trim", new[] { ctx.StringSort }, ctx.StringSort);
-            var x = (SeqExpr)ctx.MkConst("x", ctx.StringSort);
-            var y = (SeqExpr)ctx.MkConst("y", ctx.StringSort);
-            var z = (SeqExpr)ctx.MkConst("z", ctx.StringSort);
-            var rule = ctx.MkForall(
+            var trimFunc = context.MkFuncDecl("Trim", new[] { context.StringSort }, context.StringSort);
+            var x = (SeqExpr)context.MkConst("x", context.StringSort);
+            var y = (SeqExpr)context.MkConst("y", context.StringSort);
+            var z = (SeqExpr)context.MkConst("z", context.StringSort);
+            var rule = context.MkForall(
                 new Expr[] { x, y },
-                ctx.MkImplies(
-                    ctx.MkEq(ctx.MkApp(trimFunc, x), y),
-                    ctx.MkContains(x, y)));
-            var v1 = (SeqExpr)ctx.MkConst("v1", ctx.StringSort);
-            var v2 = (SeqExpr)ctx.MkConst("v2", ctx.StringSort);
+                context.MkImplies(
+                    context.MkEq(context.MkApp(trimFunc, x), y),
+                    context.MkContains(x, y)));
+            var v1 = (SeqExpr)context.MkConst("v1", context.StringSort);
+            var v2 = (SeqExpr)context.MkConst("v2", context.StringSort);
             return new[]
             {
                 rule,
-                ctx.MkEq(ctx.MkApp(trimFunc, v1), v2),
-                ctx.MkLt(ctx.MkLength(v1), ctx.MkLength(v2)),
+                context.MkEq(context.MkApp(trimFunc, v1), v2),
+                context.MkLt(context.MkLength(v1), context.MkLength(v2)),
             };
         }
 
-        private static BoolExpr[] CreateLTrimFunction2(Context ctx)
+        private static BoolExpr[] CreateLTrimFunction2(Context context)
         {
-            var lTrimFunc = ctx.MkFuncDecl("lTrim", new[] { ctx.StringSort }, ctx.StringSort);
-            var x = (SeqExpr)ctx.MkConst("x", ctx.StringSort);
-            var y = (SeqExpr)ctx.MkConst("y", ctx.StringSort);
-            var rule = ctx.MkForall(
+            var lTrimFunc = context.MkFuncDecl("lTrim", new[] { context.StringSort }, context.StringSort);
+            var x = (SeqExpr)context.MkConst("x", context.StringSort);
+            var y = (SeqExpr)context.MkConst("y", context.StringSort);
+            var rule = context.MkForall(
                 new Expr[] { x, y },
-                ctx.MkImplies(
-                    ctx.MkEq(ctx.MkApp(lTrimFunc, x), y),
-                    ctx.MkSuffixOf(y, x)));
-            var v1 = (SeqExpr)ctx.MkConst("v1", ctx.StringSort);
-            var v2 = (SeqExpr)ctx.MkConst("v2", ctx.StringSort);
+                context.MkImplies(
+                    context.MkEq(context.MkApp(lTrimFunc, x), y),
+                    context.MkSuffixOf(y, x)));
+            var v1 = (SeqExpr)context.MkConst("v1", context.StringSort);
+            var v2 = (SeqExpr)context.MkConst("v2", context.StringSort);
             return new[]
             {
                 rule,
-                ctx.MkEq(ctx.MkApp(lTrimFunc, v1), v2),
-                ctx.MkLe(ctx.MkLength(v1), ctx.MkLength(v2)),
+                context.MkEq(context.MkApp(lTrimFunc, v1), v2),
+                context.MkLe(context.MkLength(v1), context.MkLength(v2)),
             };
         }
 
-        private static BoolExpr[] CreateUnInterpretedFunction(Context ctx)
+        private static BoolExpr[] CreateUnInterpretedFunction(Context context)
         {
-            var func = ctx.MkFuncDecl("Func", new []{ ctx.StringSort }, ctx.StringSort);
-            var x = ctx.MkConst("x", ctx.StringSort);
-            var y = ctx.MkConst("y", ctx.StringSort);
+            var func = context.MkFuncDecl("Func", new []{ context.StringSort }, context.StringSort);
+            var x = context.MkConst("x", context.StringSort);
+            var y = context.MkConst("y", context.StringSort);
             return new[]
             {
-                ctx.MkNot(ctx.MkEq(
-                    ctx.MkApp(func, x),
-                    ctx.MkApp(func, y))),
-                ctx.MkEq(x, y),
+                context.MkNot(context.MkEq(
+                    context.MkApp(func, x),
+                    context.MkApp(func, y))),
+                context.MkEq(x, y),
             };
         }
 
-        private static BoolExpr[] CreateIsEmptyFunction(Context ctx)
+        private static BoolExpr[] CreateIsEmptyFunction(Context context)
         {
-            var isEmptyFunc = ctx.MkFuncDecl("IsEmpty", new[] { ctx.StringSort }, ctx.MkBoolSort());
-            var x = (SeqExpr)ctx.MkConst("x", ctx.StringSort);
-            var isEmptyFuncRule = ctx.MkForall(
+            var isEmptyFunc = context.MkFuncDecl("IsEmpty", new[] { context.StringSort }, context.MkBoolSort());
+            var x = (SeqExpr)context.MkConst("x", context.StringSort);
+            var isEmptyFuncRule = context.MkForall(
                 new Expr[] { x },
-                ctx.MkEq(
-                    (BoolExpr) ctx.MkApp(isEmptyFunc, x),
-                    ctx.MkInRe(x, ctx.MkToRe(ctx.MkString(@"\s*")))));
+                context.MkEq(
+                    (BoolExpr) context.MkApp(isEmptyFunc, x),
+                    context.MkInRe(x, context.MkToRe(context.MkString(@"\s*")))));
             return new[]
             {
                 isEmptyFuncRule,
-                ctx.MkEq(
-                    ctx.MkApp(isEmptyFunc, ctx.MkString("   ")),
-                    ctx.MkFalse()),
+                context.MkEq(
+                    context.MkApp(isEmptyFunc, context.MkString("   ")),
+                    context.MkFalse()),
             };
         }
 
-        private static BoolExpr[] CreateLTrimFunction(Context ctx)
+        private static BoolExpr[] CreateLTrimFunction(Context context)
         {
-            var lTrimFunc = ctx.MkFuncDecl("lTrim", new[] { ctx.StringSort }, ctx.StringSort);
-            var x = (SeqExpr)ctx.MkConst("x", ctx.StringSort);
-            var y = (SeqExpr)ctx.MkConst("y", ctx.StringSort);
-            var z = (SeqExpr)ctx.MkConst("z", ctx.StringSort);
-            var rule = ctx.MkForall(
+            var lTrimFunc = context.MkFuncDecl("lTrim", new[] { context.StringSort }, context.StringSort);
+            var x = (SeqExpr)context.MkConst("x", context.StringSort);
+            var y = (SeqExpr)context.MkConst("y", context.StringSort);
+            var z = (SeqExpr)context.MkConst("z", context.StringSort);
+            var rule = context.MkForall(
                 new Expr[] {x, y, z},
-                ctx.MkImplies(
-                    ctx.MkAnd(
-                        ctx.MkEq(
-                            ctx.MkConcat(z, y),
+                context.MkImplies(
+                    context.MkAnd(
+                        context.MkEq(
+                            context.MkConcat(z, y),
                             x),
-                        ctx.MkInRe(z, ctx.MkToRe(ctx.MkString(@"\s*")))),
-                    ctx.MkEq(ctx.MkApp(lTrimFunc, x), y)));
+                        context.MkInRe(z, context.MkToRe(context.MkString(@"\s*")))),
+                    context.MkEq(context.MkApp(lTrimFunc, x), y)));
             return new[]
             {
                 rule,
-                ctx.MkEq(
-                    ctx.MkApp(lTrimFunc, ctx.MkString(" 123")),
-                    ctx.MkString("3")),
+                context.MkEq(
+                    context.MkApp(lTrimFunc, context.MkString(" 123")),
+                    context.MkString("3")),
             };
         }
 
-        private static BoolExpr CreateBool(Context ctx)
+        private static BoolExpr CreateBool(Context context)
         {
-            var varA = ctx.MkConst(ctx.MkSymbol("a"), ctx. BoolSort);
-            return ctx.MkEq(varA, ctx.MkTrue());
+            var varA = context.MkConst(context.MkSymbol("a"), context. BoolSort);
+            return context.MkEq(varA, context.MkTrue());
         }
 
-        private static void CheckSimplify(Context ctx)
+        private static void CheckSimplify(Context context)
         {
-            var tactic = ctx.MkTactic("ctx-solver-simplify");
-            var a = ctx.MkRealConst("a");
-            var expr = ctx.MkOr(
-                ctx.MkGt(a, ctx.MkReal(1)),
-                ctx.MkGt(a, ctx.MkReal(2)));
-            var goal = ctx.MkGoal();
+            var tactic = context.MkTactic("ctx-solver-simplify");
+            var a = context.MkRealConst("a");
+            var expr = context.MkOr(
+                context.MkGt(a, context.MkReal(1)),
+                context.MkGt(a, context.MkReal(2)));
+            var goal = context.MkGoal();
             goal.Assert(expr);
             var result = tactic.Apply(goal);
             Console.WriteLine(result);
         }
 
-        private static BoolExpr[] CreateSatCore(Context ctx)
+        private static BoolExpr[] CreateSatCore(Context context)
         {
-            var varA = ctx.MkConst(ctx.MkSymbol("a"), ctx.StringSort);
+            var varA = context.MkConst(context.MkSymbol("a"), context.StringSort);
             return new[]
             {
-                ctx.MkEq(varA, ctx.MkString("2")),
-                ctx.MkNot(
-                    ctx.MkEq(varA, ctx.MkString("2"))),
-                ctx.MkEq(varA, ctx.MkString("1")),
-                ctx.MkNot(
-                    ctx.MkEq(varA, ctx.MkString("1"))),
+                context.MkEq(varA, context.MkString("2")),
+                context.MkNot(
+                    context.MkEq(varA, context.MkString("2"))),
+                context.MkEq(varA, context.MkString("1")),
+                context.MkNot(
+                    context.MkEq(varA, context.MkString("1"))),
             };
         }
 
-        private static void CheckSat(Context ctx, params BoolExpr[] exprs)
+        private static void CheckSat(Context context, params BoolExpr[] exprs)
         {
-            var solver = ctx.MkSolver();
+            var solver = context.MkSolver();
             for (var index = 0; index < exprs.Length; index++)
             {
                 var expr = exprs[index];
-                solver.AssertAndTrack(expr, ctx.MkBoolConst($"{index}"));
+                solver.AssertAndTrack(expr, context.MkBoolConst($"{index}"));
             }
             Console.WriteLine(solver);
             var status = solver.Check();
@@ -241,173 +241,173 @@ namespace Microsoft.Z3.Experiments.App
             Console.WriteLine("----------------------------------");
         }
 
-        private static BoolExpr CreateContains(Context ctx)
+        private static BoolExpr CreateContains(Context context)
         {
-            var varA = ctx.MkConst(ctx.MkSymbol("a"), ctx.StringSort);
-            return ctx.MkAnd(
-                ctx.MkEq(varA, ctx.MkString("abc")), 
-                ctx.MkContains((SeqExpr)varA, ctx.MkString("ac")));
+            var varA = context.MkConst(context.MkSymbol("a"), context.StringSort);
+            return context.MkAnd(
+                context.MkEq(varA, context.MkString("abc")), 
+                context.MkContains((SeqExpr)varA, context.MkString("ac")));
         }
 
-        private static BoolExpr CreateNotContains(Context ctx) => 
-            ctx.MkNot(CreateContains(ctx));
+        private static BoolExpr CreateNotContains(Context context) => 
+            context.MkNot(CreateContains(context));
 
-        private static BoolExpr CreateExprIntervals(Context ctx)
+        private static BoolExpr CreateExprIntervals(Context context)
         {
-            var varA = ctx.MkConst(ctx.MkSymbol("a"), ctx.IntSort);
-            return ctx.MkAnd(
-                ctx.MkGt((ArithExpr)varA, ctx.MkInt(10)),
-                ctx.MkLt((ArithExpr)varA, ctx.MkInt(12)));
+            var varA = context.MkConst(context.MkSymbol("a"), context.IntSort);
+            return context.MkAnd(
+                context.MkGt((ArithExpr)varA, context.MkInt(10)),
+                context.MkLt((ArithExpr)varA, context.MkInt(12)));
         }
 
-        private static BoolExpr CreateExprContradiction(Context ctx)
+        private static BoolExpr CreateExprContradiction(Context context)
         {
-            var varA = ctx.MkConst(ctx.MkSymbol("a"), ctx.StringSort);
-            return ctx.MkAnd(
-                ctx.MkEq(varA, ctx.MkString("1")),
-                ctx.MkNot(
-                    ctx.MkEq(varA, ctx.MkString("1"))));
+            var varA = context.MkConst(context.MkSymbol("a"), context.StringSort);
+            return context.MkAnd(
+                context.MkEq(varA, context.MkString("1")),
+                context.MkNot(
+                    context.MkEq(varA, context.MkString("1"))));
         }
 
-        private static BoolExpr CreateReal(Context ctx)
+        private static BoolExpr CreateReal(Context context)
         {
-            var varA = ctx.MkRealConst("a");
-            return ctx.MkAnd(
-                ctx.MkGt(varA, ctx.MkReal(1)),
-                ctx.MkLe(varA, ctx.MkReal(10, 10)));
+            var varA = context.MkRealConst("a");
+            return context.MkAnd(
+                context.MkGt(varA, context.MkReal(1)),
+                context.MkLe(varA, context.MkReal(10, 10)));
         }
 
-        private static BoolExpr CreateExprIsEmpty(Context ctx)
+        private static BoolExpr CreateExprIsEmpty(Context context)
         {
-            var varA = ctx.MkConst(ctx.MkSymbol("a"), ctx.StringSort);
-            return ctx.MkAnd(
-                ctx.MkOr(
-                    ctx.MkEq(varA, ctx.MkString("")),
-                    ctx.MkEq(varA, ctx.MkString("NULL"))),
-                ctx.MkNot(ctx.MkEq(varA, ctx.MkString("NA"))));
+            var varA = context.MkConst(context.MkSymbol("a"), context.StringSort);
+            return context.MkAnd(
+                context.MkOr(
+                    context.MkEq(varA, context.MkString("")),
+                    context.MkEq(varA, context.MkString("NULL"))),
+                context.MkNot(context.MkEq(varA, context.MkString("NA"))));
         }
 
-        private static BoolExpr CreateNullable2(Context ctx)
+        private static BoolExpr CreateNullable2(Context context)
         {
-            var (dataType, valueConstructor, _) = CreateNullableSort(ctx.IntSort, ctx);
-            var a = ctx.MkConst("a", dataType);
-            var b = ctx.MkConst("b", dataType);
-            var constant = ctx.MkApp(valueConstructor.ConstructorDecl, ctx.MkInt(42));
-            return ctx.MkAnd(
-                ctx.MkEq(a, constant),
-                ctx.MkEq(a, b));
+            var (dataType, valueConstructor, _) = CreateNullableSort(context.IntSort, context);
+            var a = context.MkConst("a", dataType);
+            var b = context.MkConst("b", dataType);
+            var constant = context.MkApp(valueConstructor.ConstructorDecl, context.MkInt(42));
+            return context.MkAnd(
+                context.MkEq(a, constant),
+                context.MkEq(a, b));
         }
 
-        private static BoolExpr CreateNullable3(Context ctx)
+        private static BoolExpr CreateNullable3(Context context)
         {
-            var (dataType, _, nullConstructor) = CreateNullableSort(ctx.IntSort, ctx);
-            var a = ctx.MkConst("a", dataType);
-            var b = ctx.MkConst("b", dataType);
-            var nullConstant = ctx.MkApp(nullConstructor.ConstructorDecl);
-            return ctx.MkAnd(
-                ctx.MkEq(a, nullConstant),
-                ctx.MkEq(a, b));
+            var (dataType, _, nullConstructor) = CreateNullableSort(context.IntSort, context);
+            var a = context.MkConst("a", dataType);
+            var b = context.MkConst("b", dataType);
+            var nullConstant = context.MkApp(nullConstructor.ConstructorDecl);
+            return context.MkAnd(
+                context.MkEq(a, nullConstant),
+                context.MkEq(a, b));
         }
 
-        private static BoolExpr CreateNullable(Context ctx)
+        private static BoolExpr CreateNullable(Context context)
         {
-            var (dataType, valueConstructor, nullConstructor) = CreateNullableSort(ctx.IntSort, ctx);
-            var (dataType2, valueConstructor2, nullConstructor2) = CreateNullableSort(ctx.RealSort, ctx);
-            var a = ctx.MkConst("a", dataType);
-            var b = ctx.MkConst("b", dataType2);
-            var const0 = ctx.MkApp(valueConstructor.ConstructorDecl, ctx.MkInt(0));
-            var const1 = ctx.MkApp(valueConstructor.ConstructorDecl, ctx.MkInt(1));
-            var constNull = ctx.MkApp(nullConstructor.ConstructorDecl);
+            var (dataType, valueConstructor, nullConstructor) = CreateNullableSort(context.IntSort, context);
+            var (dataType2, valueConstructor2, nullConstructor2) = CreateNullableSort(context.RealSort, context);
+            var a = context.MkConst("a", dataType);
+            var b = context.MkConst("b", dataType2);
+            var const0 = context.MkApp(valueConstructor.ConstructorDecl, context.MkInt(0));
+            var const1 = context.MkApp(valueConstructor.ConstructorDecl, context.MkInt(1));
+            var constNull = context.MkApp(nullConstructor.ConstructorDecl);
             var getValueDecl = valueConstructor.AccessorDecls[0];
-            var aValue = (ArithExpr)ctx.MkApp(getValueDecl, a);
-            var aIsNull = (BoolExpr)ctx.MkApp(nullConstructor2.TesterDecl, a);
-            var aIsValue = (BoolExpr)ctx.MkApp(valueConstructor2.TesterDecl, a);
-            return ctx.MkAnd(
-                ctx.MkAnd(aIsValue, ctx.MkGe(aValue, ctx.MkInt(0))),
+            var aValue = (ArithExpr)context.MkApp(getValueDecl, a);
+            var aIsNull = (BoolExpr)context.MkApp(nullConstructor2.TesterDecl, a);
+            var aIsValue = (BoolExpr)context.MkApp(valueConstructor2.TesterDecl, a);
+            return context.MkAnd(
+                context.MkAnd(aIsValue, context.MkGe(aValue, context.MkInt(0))),
                 aIsNull);
         }
 
-        private static BoolExpr CreateAlphaNumeric(Context ctx) =>
-            ctx.MkInRe(
-                (SeqExpr)ctx.MkConst("x", ctx.StringSort),
-                ctx.MkLoop(
-                    ctx.MkUnion(
-                        ctx.MkRange(ctx.MkString("0"), ctx.MkString("9")),
-                        ctx.MkRange(ctx.MkString("A"), ctx.MkString("Z")),
-                        ctx.MkRange(ctx.MkString("a"), ctx.MkString("z"))),
+        private static BoolExpr CreateAlphaNumeric(Context context) =>
+            context.MkInRe(
+                (SeqExpr)context.MkConst("x", context.StringSort),
+                context.MkLoop(
+                    context.MkUnion(
+                        context.MkRange(context.MkString("0"), context.MkString("9")),
+                        context.MkRange(context.MkString("A"), context.MkString("Z")),
+                        context.MkRange(context.MkString("a"), context.MkString("z"))),
                     3, 
                     5));
 
-        private static BoolExpr CreateNonAlphaNumeric(Context ctx)
+        private static BoolExpr CreateNonAlphaNumeric(Context context)
         {
-            SeqExpr x = (SeqExpr)ctx.MkConst("x", ctx.StringSort);
+            SeqExpr x = (SeqExpr)context.MkConst("x", context.StringSort);
             return 
-                ctx.MkAnd(
-                    ctx.MkEq(x, ctx.MkString("11111")),
-                    ctx.MkOr(
-                        ctx.MkLt(ctx.MkLength(x), ctx.MkInt(3)),
-                        ctx.MkGt(ctx.MkLength(x), ctx.MkInt(5)),
-                        ctx.MkInRe(
+                context.MkAnd(
+                    context.MkEq(x, context.MkString("11111")),
+                    context.MkOr(
+                        context.MkLt(context.MkLength(x), context.MkInt(3)),
+                        context.MkGt(context.MkLength(x), context.MkInt(5)),
+                        context.MkInRe(
                             x,
-                            ctx.MkConcat(
-                                ctx.MkFullRe(ctx.MkReSort(ctx.StringSort)),
-                                    ctx.MkUnion(
-                                        ctx.MkRange(ctx.MkString("\\x00"), ctx.MkString("\\x2F")),
-                                        ctx.MkRange(ctx.MkString("\\x3A"), ctx.MkString("\\xFF"))),
-                                ctx.MkFullRe(ctx.MkReSort(ctx.StringSort))))));
+                            context.MkConcat(
+                                context.MkFullRe(context.MkReSort(context.StringSort)),
+                                    context.MkUnion(
+                                        context.MkRange(context.MkString("\\x00"), context.MkString("\\x2F")),
+                                        context.MkRange(context.MkString("\\x3A"), context.MkString("\\xFF"))),
+                                context.MkFullRe(context.MkReSort(context.StringSort))))));
         }
 
-        private static BoolExpr[] CreateNonAlphaNumeric2(Context ctx)
+        private static BoolExpr[] CreateNonAlphaNumeric2(Context context)
         {
-            var x = (SeqExpr)ctx.MkConst("x", ctx.StringSort);
-            var y = (SeqExpr)ctx.MkConst("y", ctx.StringSort);
+            var x = (SeqExpr)context.MkConst("x", context.StringSort);
+            var y = (SeqExpr)context.MkConst("y", context.StringSort);
             var alphaNumChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
                 .ToList();
             return new[]
             {
 
-                ctx.MkEq(x, ctx.MkString("11111")),
-                ctx.MkAnd(alphaNumChars.Select(c =>
-                    ctx.MkNot(
-                        ctx.MkEq(y, ctx.MkString(c.ToString()))))),
-                ctx.MkEq(ctx.MkLength(y), ctx.MkInt(1)),
-                ctx.MkOr(
-                    ctx.MkLt(ctx.MkLength(x), ctx.MkInt(3)),
-                    ctx.MkGt(ctx.MkLength(x), ctx.MkInt(5)),
-                    ctx.MkContains(x, y)),
+                context.MkEq(x, context.MkString("11111")),
+                context.MkAnd(alphaNumChars.Select(c =>
+                    context.MkNot(
+                        context.MkEq(y, context.MkString(c.ToString()))))),
+                context.MkEq(context.MkLength(y), context.MkInt(1)),
+                context.MkOr(
+                    context.MkLt(context.MkLength(x), context.MkInt(3)),
+                    context.MkGt(context.MkLength(x), context.MkInt(5)),
+                    context.MkContains(x, y)),
             };
         }
 
-        private static BoolExpr CreateIntToString(Context ctx)
+        private static BoolExpr CreateIntToString(Context context)
         {
-            var x = ctx.MkConst("x", ctx.IntSort);
-            return ctx.MkEq(ctx.IntToString(x), ctx.MkString("4"));
+            var x = context.MkConst("x", context.IntSort);
+            return context.MkEq(context.IntToString(x), context.MkString("4"));
         }
 
-        private static (DatatypeSort, Constructor, Constructor) CreateNullableSort(Sort sort, Context ctx)
+        private static (DatatypeSort, Constructor, Constructor) CreateNullableSort(Sort sort, Context context)
         {
-            var mkConstructor = ctx.MkConstructor("null", "isNull");
-            var valueConstructor = ctx.MkConstructor("value", "hasValue", new[] {"value"}, new[] {sort});
-            var dataTypeSort = ctx.MkDatatypeSort("Nullable", new[] {mkConstructor, valueConstructor});
+            var mkConstructor = context.MkConstructor("null", "isNull");
+            var valueConstructor = context.MkConstructor("value", "hasValue", new[] {"value"}, new[] {sort});
+            var dataTypeSort = context.MkDatatypeSort("Nullable", new[] {mkConstructor, valueConstructor});
             return (dataTypeSort, valueConstructor, mkConstructor);
         }
 
-        private static BoolExpr[] CreateFunctionAxiom(Context ctx)
+        private static BoolExpr[] CreateFunctionAxiom(Context context)
         {
-            var func1 = ctx.MkFuncDecl("func1", new[] { ctx.StringSort }, ctx.BoolSort);
-            var func2 = ctx.MkFuncDecl("func2", Array.Empty<Sort>(), ctx.BoolSort);
-            var x = (SeqExpr)ctx.MkConst("x", ctx.StringSort);
-            var rule = ctx.MkForall(
+            var func1 = context.MkFuncDecl("func1", new[] { context.StringSort }, context.BoolSort);
+            var func2 = context.MkFuncDecl("func2", Array.Empty<Sort>(), context.BoolSort);
+            var x = (SeqExpr)context.MkConst("x", context.StringSort);
+            var rule = context.MkForall(
                 new Expr[] { x },
-                ctx.MkImplies(
-                    ctx.MkApp(func1, x) as BoolExpr, 
-                    ctx.MkNot(ctx.MkApp(func2) as BoolExpr)));
-            var v = (SeqExpr)ctx.MkConst("v", ctx.StringSort);
+                context.MkImplies(
+                    context.MkApp(func1, x) as BoolExpr, 
+                    context.MkNot(context.MkApp(func2) as BoolExpr)));
+            var v = (SeqExpr)context.MkConst("v", context.StringSort);
             return new[]
             {
                 rule,
-                ctx.MkApp(func1, v) as BoolExpr,
-                ctx.MkApp(func2) as BoolExpr,
+                context.MkApp(func1, v) as BoolExpr,
+                context.MkApp(func2) as BoolExpr,
             };
         }
     }
