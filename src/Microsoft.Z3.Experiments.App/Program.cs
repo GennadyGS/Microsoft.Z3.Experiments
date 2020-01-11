@@ -45,10 +45,6 @@ namespace Microsoft.Z3.Experiments.App
 
                 // CheckSat(ctx, CreateUpperFunction(ctx));
 
-                CheckSat(ctx, CreateAlphaNumeric(ctx));
-
-                CheckSat(ctx, CreateNonAlphaNumeric(ctx));
-
                 CheckSat(ctx, CreateIntToString(ctx));
 
                 CheckSimplify(ctx);
@@ -58,6 +54,12 @@ namespace Microsoft.Z3.Experiments.App
                 CheckSat(ctx, CreateNullable3(ctx));
 
                 CheckSat(ctx, CreateFunctionAxiom(ctx));
+
+                CheckSat(ctx, CreateAlphaNumeric(ctx));
+
+                CheckSat(ctx, CreateNonAlphaNumeric(ctx));
+
+                CheckSat(ctx, CreateNonAlphaNumeric2(ctx));
             }
         }
 
@@ -353,6 +355,27 @@ namespace Microsoft.Z3.Experiments.App
                                         ctx.MkRange(ctx.MkString("\\x00"), ctx.MkString("\\x2F")),
                                         ctx.MkRange(ctx.MkString("\\x3A"), ctx.MkString("\\xFF"))),
                                 ctx.MkFullRe(ctx.MkReSort(ctx.StringSort))))));
+        }
+
+        private static BoolExpr[] CreateNonAlphaNumeric2(Context ctx)
+        {
+            var x = (SeqExpr)ctx.MkConst("x", ctx.StringSort);
+            var y = (SeqExpr)ctx.MkConst("y", ctx.StringSort);
+            var alphaNumChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+                .ToList();
+            return new[]
+            {
+
+                ctx.MkEq(x, ctx.MkString("11111")),
+                ctx.MkAnd(alphaNumChars.Select(c =>
+                    ctx.MkNot(
+                        ctx.MkEq(y, ctx.MkString(c.ToString()))))),
+                ctx.MkEq(ctx.MkLength(y), ctx.MkInt(1)),
+                ctx.MkOr(
+                    ctx.MkLt(ctx.MkLength(x), ctx.MkInt(3)),
+                    ctx.MkGt(ctx.MkLength(x), ctx.MkInt(5)),
+                    ctx.MkContains(x, y)),
+            };
         }
 
         private static BoolExpr CreateIntToString(Context ctx)
