@@ -25,6 +25,8 @@ namespace Microsoft.Z3.Experiments.App
 
                 CheckSat(context, CreateReal(context));
 
+                CheckSat(context, CreateReal2(context));
+
                 CheckSat(context, CreateContains(context));
 
                 CheckSat(context, CreateNotContains(context));
@@ -60,6 +62,16 @@ namespace Microsoft.Z3.Experiments.App
                 CheckSat(context, CreateNonAlphaNumeric(context));
 
                 CheckSat(context, CreateNonAlphaNumeric2(context));
+
+                CheckSat(context, CreateNonAlphaNumeric2(context));
+
+                CheckSat(context, CreateAllDistinctEmpty(context));
+
+                CheckSat(context, CreateAllDistinct1(context));
+
+                CheckSat(context, CreateAllDistinct2(context));
+
+                CheckSat(context, CreateAllDistinctSame(context));
             }
         }
 
@@ -277,6 +289,12 @@ namespace Microsoft.Z3.Experiments.App
                 context.MkLe(varA, context.MkReal(10, 10)));
         }
 
+        private static BoolExpr CreateReal2(Context context)
+        {
+            var varA = context.MkIntConst("a");
+            return context.MkEq(varA, context.MkReal(1));
+        }
+
         private static BoolExpr CreateExprIsEmpty(Context context)
         {
             var varA = context.MkConst(context.MkSymbol("a"), context.StringSort);
@@ -400,7 +418,7 @@ namespace Microsoft.Z3.Experiments.App
             var rule = context.MkForall(
                 new Expr[] { x },
                 context.MkImplies(
-                    context.MkApp(func1, x) as BoolExpr, 
+                    context.MkApp(func1, x) as BoolExpr,
                     context.MkNot(context.MkApp(func2) as BoolExpr)));
             var v = (SeqExpr)context.MkConst("v", context.StringSort);
             return new[]
@@ -409,6 +427,31 @@ namespace Microsoft.Z3.Experiments.App
                 context.MkApp(func1, v) as BoolExpr,
                 context.MkApp(func2) as BoolExpr,
             };
+        }
+
+        private static BoolExpr CreateAllDistinctEmpty(Context context)
+        {
+            return context.MkDistinct();
+        }
+
+        private static BoolExpr CreateAllDistinct1(Context context)
+        {
+            return context.MkDistinct(
+                context.MkConst("a", context.StringSort));
+        }
+
+        private static BoolExpr CreateAllDistinct2(Context context)
+        {
+            return context.MkDistinct(
+                context.MkConst("a", context.StringSort),
+                context.MkConst("b", context.StringSort));
+        }
+
+        private static BoolExpr CreateAllDistinctSame(Context context)
+        {
+            return context.MkDistinct(
+                context.MkConst("a", context.StringSort),
+                context.MkConst("a", context.StringSort));
         }
     }
 }
