@@ -35,8 +35,6 @@ namespace Microsoft.Z3.Experiments.App
 
                 CheckSat(context, CreateSatCore(context));
 
-                CheckSat(context, CreateUnInterpretedFunction(context));
-
                 CheckSat(context, CreateIsEmptyFunction(context));
 
                 //CheckSat(context, CreateLTrimFunction(context));
@@ -72,6 +70,14 @@ namespace Microsoft.Z3.Experiments.App
                 CheckSat(context, CreateAllDistinct2(context));
 
                 CheckSat(context, CreateAllDistinctSame(context));
+
+                CheckSat(context, CreateDivide(context));
+
+                CheckSat(context, CreateCustom(context));
+
+                CheckSat(context, CreateUnInterpretedFunction(context));
+
+                CheckSat(context, CreateFinite(context));
             }
         }
 
@@ -138,9 +144,9 @@ namespace Microsoft.Z3.Experiments.App
 
         private static BoolExpr[] CreateUnInterpretedFunction(Context context)
         {
-            var func = context.MkFuncDecl("Func", new []{ context.StringSort }, context.StringSort);
-            var x = context.MkConst("x", context.StringSort);
-            var y = context.MkConst("y", context.StringSort);
+            var func = context.MkFuncDecl("Functions.Func", new []{ context.StringSort }, context.StringSort);
+            var x = context.MkConst("Fields.X", context.StringSort);
+            var y = context.MkConst("Fields.Y", context.StringSort);
             return new[]
             {
                 context.MkNot(context.MkEq(
@@ -453,5 +459,49 @@ namespace Microsoft.Z3.Experiments.App
                 context.MkConst("a", context.StringSort),
                 context.MkConst("a", context.StringSort));
         }
+
+        private static BoolExpr CreateDivide(Context context)
+        {
+            return context.MkEq(
+                context.MkConst("A", context.RealSort),
+                context.MkDiv(
+                    (ArithExpr) context.MkConst("B", context.RealSort),
+                    (ArithExpr) context.MkConst("C", context.RealSort)));
+        }
+
+        private static BoolExpr[] CreateCustom(Context context)
+        {
+
+            return context.ParseSMTLIB2String(@"
+(declare-datatypes ((Special_Real_Null 0)) (((Value (value Real)) (Null))))
+(declare-fun C () Special_Real_Null)
+(declare-fun B () Special_Real_Null)
+(declare-fun A () Special_Real_Null)
+(assert 
+	(let 
+		((a!1 
+			(ite 
+				(and ((_ is (Value (Real) Special_Real_Null)) B)
+                     ((_ is (Value (Real) Special_Real_Null)) C))
+                (Value (/ (value B) (value C)))
+                Null)))
+		(and 
+			(= A a!1)
+            ((_ is (Value (Real) Special_Real_Null)) A)
+            ((_ is (Value (Real) Special_Real_Null)) B)
+            ((_ is (Value (Real) Special_Real_Null)) C)
+            (= (value C) 7)
+            )))
+");
+        }
+
+        private static BoolExpr CreateFinite(Context context)
+        {
+            var finiteSort = context.MkFiniteDomainSort("Sort", 10000);
+            return context.MkGt(
+                (ArithExpr)context.MkNumeral(1, finiteSort),
+                (ArithExpr)context.MkConst("A", finiteSort));
+        }
+
     }
 }
