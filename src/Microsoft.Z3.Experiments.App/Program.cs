@@ -73,11 +73,19 @@ namespace Microsoft.Z3.Experiments.App
 
                 CheckSat(context, CreateDivide(context));
 
-                CheckSat(context, CreateCustom(context));
-
                 CheckSat(context, CreateUnInterpretedFunction(context));
 
                 CheckSat(context, CreateFinite(context));
+
+                CheckSat(context, CreateBigIntToString(context));
+
+                CheckSat(context, CreateCustom(context));
+
+                CheckSat(context, CreateIntDivide(context));
+
+                CheckSat(context, CreateAddYears(context));
+
+                CheckSat(context, CreateRound(context));
             }
         }
 
@@ -405,7 +413,9 @@ namespace Microsoft.Z3.Experiments.App
         private static BoolExpr CreateIntToString(Context context)
         {
             var x = context.MkConst("x", context.IntSort);
-            return context.MkEq(context.IntToString(x), context.MkString("4"));
+            return context.MkEq(
+                context.IntToString(x), 
+                context.MkString("4"));
         }
 
         private static (DatatypeSort, Constructor, Constructor) CreateNullableSort(Sort sort, Context context)
@@ -469,39 +479,121 @@ namespace Microsoft.Z3.Experiments.App
                     (ArithExpr) context.MkConst("C", context.RealSort)));
         }
 
-        private static BoolExpr[] CreateCustom(Context context)
+        private static BoolExpr CreateIntDivide(Context context)
         {
+            return context.MkEq(
+                context.MkConst("A", context.IntSort),
+                context.MkMod(context.MkInt(-5), context.MkInt(3)));
+        }
 
-            return context.ParseSMTLIB2String(@"
-(declare-datatypes ((Special_Real_Null 0)) (((Value (value Real)) (Null))))
-(declare-fun C () Special_Real_Null)
-(declare-fun B () Special_Real_Null)
-(declare-fun A () Special_Real_Null)
-(assert 
-	(let 
-		((a!1 
-			(ite 
-				(and ((_ is (Value (Real) Special_Real_Null)) B)
-                     ((_ is (Value (Real) Special_Real_Null)) C))
-                (Value (/ (value B) (value C)))
-                Null)))
-		(and 
-			(= A a!1)
-            ((_ is (Value (Real) Special_Real_Null)) A)
-            ((_ is (Value (Real) Special_Real_Null)) B)
-            ((_ is (Value (Real) Special_Real_Null)) C)
-            (= (value C) 7)
-            )))
-");
+        private static BoolExpr[] CreateAddYears(Context context)
+        {
+            const int DaysPerNormalYear = 10;
+            const int YearsPerCycle = 4;
+            const int DaysPerCycle = DaysPerNormalYear * YearsPerCycle + 1;
+
+            var day = (IntExpr)context.MkConst("day", context.IntSort);
+            var years = (IntExpr)context.MkConst("years", context.IntSort);
+            var result = (IntExpr)context.MkConst("result", context.IntSort);
+
+            var yearsPerCycle = context.MkInt(YearsPerCycle);
+            var daysPerCycle = context.MkInt(DaysPerCycle);
+            var daysPerCycleMinusOne = 
+                (IntExpr)context.MkSub(context.MkInt(DaysPerCycle), context.MkInt(1));
+
+            IntExpr GetMainPart(IntExpr dividend, IntExpr divider) =>
+                (IntExpr)context.MkMul(
+                    context.MkDiv(dividend, divider),
+                    divider);
+
+            var dayInCycle = context.MkMod(day, daysPerCycle);
+            var rule = context.MkEq(
+                result,
+                context.MkAdd(
+                    GetMainPart(day, daysPerCycle),
+                    GetMainPart(dayInCycle, daysPerCycleMinusOne),
+                    context.MkDiv(
+                        context.MkAdd(
+                            context.MkMul(
+                                context.MkMod(dayInCycle, daysPerCycleMinusOne),
+                                daysPerCycle,
+                                yearsPerCycle),
+                            context.MkMul(
+                                years,
+                                daysPerCycle,
+                                daysPerCycleMinusOne)),
+                        context.MkMul(yearsPerCycle, daysPerCycleMinusOne))));
+            return new[] {
+                rule,
+                context.MkEq(day, context.MkInt(-41)),
+                // context.MkEq(years, context.MkInt(4)),
+                context.MkEq(result, context.MkInt(0)),
+            };
         }
 
         private static BoolExpr CreateFinite(Context context)
         {
             var finiteSort = context.MkFiniteDomainSort("Sort", 10000);
-            return context.MkGt(
-                (ArithExpr)context.MkNumeral(1, finiteSort),
-                (ArithExpr)context.MkConst("A", finiteSort));
+            return context.MkEq(
+                context.MkNumeral(1, finiteSort),
+                context.MkConst("A", finiteSort));
         }
 
+        private static BoolExpr CreateBigIntToString(Context context)
+        {
+            var x = (IntExpr)context.MkConst("x", context.IntSort);
+            var y = (SeqExpr)context.MkConst("y", context.StringSort);
+            return 
+                context.MkAnd(
+                    context.MkEq(context.IntToString(x), y),
+                    context.MkEq(
+                        context.MkMod(x, context.MkInt(97)), 
+                        context.MkInt(1)),
+                        context.MkEq(context.MkLength(y), context.MkInt(23)));
+        }
+
+        private static BoolExpr CreateRound(Context context)
+        {
+            var x = (IntExpr)context.MkConst("x", context.IntSort);
+            var y = (RealExpr)context.MkConst("y", context.RealSort);
+            return
+                context.MkAnd(
+                    context.MkEq(context.MkReal2Int(y), x),
+                    context.MkEq(y, context.MkReal(-1, 10)));
+        }
+        private static BoolExpr[] CreateCustom(Context context)
+        {
+
+            return context.ParseSMTLIB2String(@"
+(declare-datatypes ((Special_String_Null 0)) (((Value (value String)) (Null))))
+(declare-datatypes ((Special_Int_Null 0)) (((Value (value Int)) (Null))))
+(declare-fun Locals.e445e8ee2b624e1d83b2a65079cc38a4 () Int)
+(declare-fun Fields.A () Special_String_Null)
+(declare-fun Locals.738d1814b98d41b59b3175124ae7d8fe () Int)
+(assert (let ((a!1 (ite (and ((_ is (Value (String) Special_String_Null)) Fields.A)
+                     true)
+                (Value (str.len (value Fields.A)))
+                (as Null Special_Int_Null)))
+      (a!2 (not (and ((_ is (Value (String) Special_String_Null)) Fields.A)
+                     (= (int.to.str Locals.738d1814b98d41b59b3175124ae7d8fe)
+                        (value Fields.A))
+                     (= (mod Locals.738d1814b98d41b59b3175124ae7d8fe 97) 1))))
+      (a!4 (not (and ((_ is (Value (String) Special_String_Null)) Fields.A)
+                     (= (int.to.str Locals.e445e8ee2b624e1d83b2a65079cc38a4)
+                        (value Fields.A))
+                     (= (mod Locals.e445e8ee2b624e1d83b2a65079cc38a4 97) 1)))))
+(let ((a!3 (or (= (ite ((_ is (Value (Int) Special_Int_Null)) a!1)
+                       a!1
+                       (Value 0))
+                  (Value 5))
+               a!2))
+      (a!5 (or (= (ite ((_ is (Value (Int) Special_Int_Null)) a!1)
+                       a!1
+                       (Value 0))
+                  (Value 4))
+               a!4)))
+  (and a!3 (not a!5)))))
+");
+        }
     }
 }
