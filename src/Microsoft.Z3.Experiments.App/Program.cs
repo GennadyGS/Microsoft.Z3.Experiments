@@ -79,13 +79,12 @@ namespace Microsoft.Z3.Experiments.App
 
                 CheckSat(context, CreateBigIntToString(context));
 
-                CheckSat(context, CreateCustom(context));
-
                 CheckSat(context, CreateIntDivide(context));
 
                 CheckSat(context, CreateAddYears(context));
 
                 CheckSat(context, CreateRound(context));
+                CheckSat(context, CreateCustom(context));
             }
         }
 
@@ -567,32 +566,34 @@ namespace Microsoft.Z3.Experiments.App
             return context.ParseSMTLIB2String(@"
 (declare-datatypes ((Special_String_Null 0)) (((Value (value String)) (Null))))
 (declare-datatypes ((Special_Int_Null 0)) (((Value (value Int)) (Null))))
-(declare-fun Locals.e445e8ee2b624e1d83b2a65079cc38a4 () Int)
+(declare-fun Locals.ContainsTranscriptionError () Int)
 (declare-fun Fields.A () Special_String_Null)
-(declare-fun Locals.738d1814b98d41b59b3175124ae7d8fe () Int)
 (assert (let ((a!1 (ite (and ((_ is (Value (String) Special_String_Null)) Fields.A)
                      true)
                 (Value (str.len (value Fields.A)))
                 (as Null Special_Int_Null)))
-      (a!2 (not (and ((_ is (Value (String) Special_String_Null)) Fields.A)
-                     (= (int.to.str Locals.738d1814b98d41b59b3175124ae7d8fe)
-                        (value Fields.A))
-                     (= (mod Locals.738d1814b98d41b59b3175124ae7d8fe 97) 1))))
+      (a!3 (= (mod Locals.ContainsTranscriptionError (value (Value 97)))
+              (value (Value 1)))))
+(let ((a!2 (>= (value (ite ((_ is (Value (Int) Special_Int_Null)) a!1)
+                           a!1
+                           (Value 0)))
+               (value (Value 23))))
       (a!4 (not (and ((_ is (Value (String) Special_String_Null)) Fields.A)
-                     (= (int.to.str Locals.e445e8ee2b624e1d83b2a65079cc38a4)
-                        (value Fields.A))
-                     (= (mod Locals.e445e8ee2b624e1d83b2a65079cc38a4 97) 1)))))
-(let ((a!3 (or (= (ite ((_ is (Value (Int) Special_Int_Null)) a!1)
+                     ((_ is (Value (Int) Special_Int_Null)) (Value 97))
+                     ((_ is (Value (Int) Special_Int_Null)) (Value 1))
+                     a!3))))
+(let ((a!5 (and ((_ is (Value (Int) Special_Int_Null))
+                  (ite ((_ is (Value (Int) Special_Int_Null)) a!1)
                        a!1
-                       (Value 0))
-                  (Value 5))
-               a!2))
-      (a!5 (or (= (ite ((_ is (Value (Int) Special_Int_Null)) a!1)
-                       a!1
-                       (Value 0))
-                  (Value 4))
-               a!4)))
-  (and a!3 (not a!5)))))
+                       (Value 0)))
+                ((_ is (Value (Int) Special_Int_Null)) (Value 23))
+                a!2
+                (not a!4))))
+  (and (not a!5)
+       (or ((_ is (Null () Special_String_Null)) Fields.A)
+           (= Fields.A (Value """")))
+       (not a!4))))))
+(assert (= (int.to.str Locals.ContainsTranscriptionError) (value Fields.A)))
 ");
         }
     }
