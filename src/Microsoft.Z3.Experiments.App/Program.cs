@@ -565,35 +565,28 @@ namespace Microsoft.Z3.Experiments.App
 
             return context.ParseSMTLIB2String(@"
 (declare-datatypes ((Special_String_Null 0)) (((Value (value String)) (Null))))
-(declare-datatypes ((Special_Int_Null 0)) (((Value (value Int)) (Null))))
-(declare-fun Locals.ContainsTranscriptionError () Int)
-(declare-fun Fields.A () Special_String_Null)
-(assert (let ((a!1 (ite (and ((_ is (Value (String) Special_String_Null)) Fields.A)
-                     true)
-                (Value (str.len (value Fields.A)))
-                (as Null Special_Int_Null)))
-      (a!3 (= (mod Locals.ContainsTranscriptionError (value (Value 97)))
-              (value (Value 1)))))
-(let ((a!2 (>= (value (ite ((_ is (Value (Int) Special_Int_Null)) a!1)
-                           a!1
-                           (Value 0)))
-               (value (Value 23))))
-      (a!4 (not (and ((_ is (Value (String) Special_String_Null)) Fields.A)
-                     ((_ is (Value (Int) Special_Int_Null)) (Value 97))
-                     ((_ is (Value (Int) Special_Int_Null)) (Value 1))
-                     a!3))))
-(let ((a!5 (and ((_ is (Value (Int) Special_Int_Null))
-                  (ite ((_ is (Value (Int) Special_Int_Null)) a!1)
-                       a!1
-                       (Value 0)))
-                ((_ is (Value (Int) Special_Int_Null)) (Value 23))
-                a!2
-                (not a!4))))
-  (and (not a!5)
-       (or ((_ is (Null () Special_String_Null)) Fields.A)
-           (= Fields.A (Value """")))
-       (not a!4))))))
-(assert (= (int.to.str Locals.ContainsTranscriptionError) (value Fields.A)))
+(declare-datatypes ((Special_Real_Null 0)) (((Value (value Real)) (Null))))
+(declare-fun Fields.LoanAmount () Special_Real_Null)
+(declare-fun Fields.LienStatus () Special_String_Null)
+(assert (let ((a!1 (and ((_ is (Value (Real) Special_Real_Null)) Fields.LoanAmount)
+                ((_ is (Value (Real) Special_Real_Null)) (Value 250000.0))
+                (<= (value Fields.LoanAmount) (value (Value 250000.0)))))
+      (a!3 (and ((_ is (Value (Real) Special_Real_Null)) Fields.LoanAmount)
+                ((_ is (Value (Real) Special_Real_Null)) (Value 10000000000.0))
+                (> (value Fields.LoanAmount) (value (Value 10000000000.0)))))
+      (a!5 (not (or ((_ is (Null () Special_String_Null)) Fields.LienStatus)
+                    (= Fields.LienStatus (Value """"))))))
+(let ((a!2 (or (not (= Fields.LienStatus (Value ""2""))) a!1))
+      (a!4 (or (not (= Fields.LienStatus (Value ""2""))) a!3)))
+  (and (not a!2)
+       a!4
+       (or (= Fields.LienStatus (Value ""1"")) (= Fields.LienStatus (Value ""2"")))
+       a!5
+       ((_ is (Value (Real) Special_Real_Null)) Fields.LoanAmount)
+       ((_ is (Value (Real) Special_Real_Null)) Fields.LoanAmount)
+       ((_ is (Value (Real) Special_Real_Null)) (Value 0.0))
+       (>= (value Fields.LoanAmount) (value (Value 0.0)))
+       (not (or ((_ is (Null () Special_Real_Null)) Fields.LoanAmount) or))))))
 ");
         }
     }
