@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace Microsoft.Z3.Experiments.App
 {
@@ -15,79 +16,41 @@ namespace Microsoft.Z3.Experiments.App
         {
             using var context = new Context(new Dictionary<string, string> { { "MODEL", "false" } });
 
-            CheckSat(context, CreateExprContradiction(context));
+            var methods = typeof(Program)
+                .GetMethods(BindingFlags.Static | BindingFlags.NonPublic)
+                .Where(HasCorrectSignature)
+                .ToList();
 
-            CheckSat(context, CreateBool(context));
-
-            CheckSat(context, CreateExprIsEmpty(context));
-
-            CheckSat(context, CreateExprIntervals(context));
-
-            CheckSat(context, CreateReal(context));
-
-            CheckSat(context, CreateReal2(context));
-
-            CheckSat(context, CreateContains(context));
-
-            CheckSat(context, CreateNotContains(context));
-
-            CheckSat(context, CreateNullable(context));
-
-            CheckSat(context, CreateSatCore(context));
-
-            CheckSat(context, CreateIsEmptyFunction(context));
-
-            //CheckSat(context, CreateLTrimFunction(context));
-
-            CheckSat(context, CreateLTrimFunction2(context));
-
-            CheckSat(context, CreateTrimFunction(context));
-
-            // CheckSat(context, CreateUpperFunction(context));
-
-            CheckSat(context, CreateIntToString(context));
-
-            CheckSimplify(context);
-
-            CheckSat(context, CreateNullable2(context));
-
-            CheckSat(context, CreateNullable3(context));
-
-            CheckSat(context, CreateFunctionAxiom(context));
-
-            CheckSat(context, CreateAlphaNumeric(context));
-
-            CheckSat(context, CreateNonAlphaNumeric(context));
-
-            CheckSat(context, CreateNonAlphaNumeric2(context));
-
-            CheckSat(context, CreateNonAlphaNumeric2(context));
-
-            CheckSat(context, CreateAllDistinctEmpty(context));
-
-            CheckSat(context, CreateAllDistinct1(context));
-
-            CheckSat(context, CreateAllDistinct2(context));
-
-            CheckSat(context, CreateAllDistinctSame(context));
-
-            CheckSat(context, CreateDivide(context));
-
-            CheckSat(context, CreateUnInterpretedFunction(context));
-
-            CheckSat(context, CreateFinite(context));
-
-            CheckSat(context, CreateBigIntToString(context));
-
-            CheckSat(context, CreateIntDivide(context));
-
-            CheckSat(context, CreateAddYears(context));
-
-            CheckSat(context, CreateRound(context));
-            CheckSat(context, CreateCustom(context));
+            foreach (var method in methods)
+            {
+                Console.WriteLine(method.Name);
+                var boolExpressions = CheckSatForMethod(method, context);
+                CheckSat(context, boolExpressions);
+                Console.WriteLine(string.Empty);
+            }
         }
 
-        private static BoolExpr[] CreateUpperFunction(Context context)
+        private static BoolExpr[] CheckSatForMethod(MethodInfo method, Context context)
+        {
+            var result = method.Invoke(null, new object[] { context });
+            return result switch
+            {
+                BoolExpr[] boolExprs => boolExprs,
+                BoolExpr boolExpr => new[] { boolExpr },
+                _ => throw new InvalidOperationException("Unsupported result type"),
+            };
+        }
+
+        private static bool HasCorrectSignature(MethodInfo methodInfo)
+        {
+            var parameters = methodInfo.GetParameters();
+            return parameters.Length == 1 
+                   && parameters.Single().ParameterType == typeof(Context)
+                   && (methodInfo.ReturnType == typeof(BoolExpr) 
+                       || methodInfo.ReturnType == typeof(BoolExpr[]));
+        }
+
+        private static BoolExpr[] UpperFunction(Context context)
         {
             var upperFunc = context.MkFuncDecl("upper", new[] { context.StringSort }, context.StringSort);
             var x = (SeqExpr)context.MkConst("x", context.StringSort);
@@ -107,7 +70,7 @@ namespace Microsoft.Z3.Experiments.App
             };
         }
 
-        private static BoolExpr[] CreateTrimFunction(Context context)
+        private static BoolExpr[] TrimFunction(Context context)
         {
             var trimFunc = context.MkFuncDecl("Trim", new[] { context.StringSort }, context.StringSort);
             var x = (SeqExpr)context.MkConst("x", context.StringSort);
@@ -128,7 +91,7 @@ namespace Microsoft.Z3.Experiments.App
             };
         }
 
-        private static BoolExpr[] CreateLTrimFunction2(Context context)
+        private static BoolExpr[] LTrimFunction2(Context context)
         {
             var lTrimFunc = context.MkFuncDecl("lTrim", new[] { context.StringSort }, context.StringSort);
             var x = (SeqExpr)context.MkConst("x", context.StringSort);
@@ -148,7 +111,7 @@ namespace Microsoft.Z3.Experiments.App
             };
         }
 
-        private static BoolExpr[] CreateUnInterpretedFunction(Context context)
+        private static BoolExpr[] UnInterpretedFunction(Context context)
         {
             var func = context.MkFuncDecl("Functions.Func", new []{ context.StringSort }, context.StringSort);
             var x = context.MkConst("Fields.X", context.StringSort);
@@ -162,7 +125,7 @@ namespace Microsoft.Z3.Experiments.App
             };
         }
 
-        private static BoolExpr[] CreateIsEmptyFunction(Context context)
+        private static BoolExpr[] IsEmptyFunction(Context context)
         {
             var isEmptyFunc = context.MkFuncDecl("IsEmpty", new[] { context.StringSort }, context.MkBoolSort());
             var x = (SeqExpr)context.MkConst("x", context.StringSort);
@@ -180,7 +143,7 @@ namespace Microsoft.Z3.Experiments.App
             };
         }
 
-        private static BoolExpr[] CreateLTrimFunction(Context context)
+        private static BoolExpr[] LTrimFunction(Context context)
         {
             var lTrimFunc = context.MkFuncDecl("lTrim", new[] { context.StringSort }, context.StringSort);
             var x = (SeqExpr)context.MkConst("x", context.StringSort);
@@ -204,7 +167,7 @@ namespace Microsoft.Z3.Experiments.App
             };
         }
 
-        private static BoolExpr CreateBool(Context context)
+        private static BoolExpr Bool(Context context)
         {
             var varA = context.MkConst(context.MkSymbol("a"), context. BoolSort);
             return context.MkEq(varA, context.MkTrue());
@@ -223,7 +186,7 @@ namespace Microsoft.Z3.Experiments.App
             Console.WriteLine(result);
         }
 
-        private static BoolExpr[] CreateSatCore(Context context)
+        private static BoolExpr[] SatCore(Context context)
         {
             var varA = context.MkConst(context.MkSymbol("a"), context.StringSort);
             return new[]
@@ -240,7 +203,7 @@ namespace Microsoft.Z3.Experiments.App
         private static void CheckSat(Context context, params BoolExpr[] exprs)
         {
             var solver = context.MkSolver();
-            solver.Set("timeout", 15000);
+            solver.Set("timeout", 5000);
             for (var index = 0; index < exprs.Length; index++)
             {
                 var expr = exprs[index];
@@ -266,7 +229,7 @@ namespace Microsoft.Z3.Experiments.App
             Console.WriteLine("----------------------------------");
         }
 
-        private static BoolExpr CreateContains(Context context)
+        private static BoolExpr Contains(Context context)
         {
             var varA = context.MkConst(context.MkSymbol("a"), context.StringSort);
             return context.MkAnd(
@@ -274,10 +237,10 @@ namespace Microsoft.Z3.Experiments.App
                 context.MkContains((SeqExpr)varA, context.MkString("ac")));
         }
 
-        private static BoolExpr CreateNotContains(Context context) => 
-            context.MkNot(CreateContains(context));
+        private static BoolExpr NotContains(Context context) => 
+            context.MkNot(Contains(context));
 
-        private static BoolExpr CreateExprIntervals(Context context)
+        private static BoolExpr ExprIntervals(Context context)
         {
             var varA = context.MkConst(context.MkSymbol("a"), context.IntSort);
             return context.MkAnd(
@@ -285,7 +248,7 @@ namespace Microsoft.Z3.Experiments.App
                 context.MkLt((ArithExpr)varA, context.MkInt(12)));
         }
 
-        private static BoolExpr CreateExprContradiction(Context context)
+        private static BoolExpr ExprContradiction(Context context)
         {
             var varA = context.MkConst(context.MkSymbol("a"), context.StringSort);
             return context.MkAnd(
@@ -294,7 +257,7 @@ namespace Microsoft.Z3.Experiments.App
                     context.MkEq(varA, context.MkString("1"))));
         }
 
-        private static BoolExpr CreateReal(Context context)
+        private static BoolExpr Real(Context context)
         {
             var varA = context.MkRealConst("a");
             return context.MkAnd(
@@ -302,13 +265,13 @@ namespace Microsoft.Z3.Experiments.App
                 context.MkLe(varA, context.MkReal(10, 10)));
         }
 
-        private static BoolExpr CreateReal2(Context context)
+        private static BoolExpr Real2(Context context)
         {
             var varA = context.MkIntConst("a");
             return context.MkEq(varA, context.MkReal(1));
         }
 
-        private static BoolExpr CreateExprIsEmpty(Context context)
+        private static BoolExpr ExprIsEmpty(Context context)
         {
             var varA = context.MkConst(context.MkSymbol("a"), context.StringSort);
             return context.MkAnd(
@@ -318,9 +281,9 @@ namespace Microsoft.Z3.Experiments.App
                 context.MkNot(context.MkEq(varA, context.MkString("NA"))));
         }
 
-        private static BoolExpr CreateNullable2(Context context)
+        private static BoolExpr Nullable2(Context context)
         {
-            var (dataType, valueConstructor, _) = CreateNullableSort(context.IntSort, context);
+            var (dataType, valueConstructor, _) = NullableSort(context.IntSort, context);
             var a = context.MkConst("a", dataType);
             var b = context.MkConst("b", dataType);
             var constant = context.MkApp(valueConstructor.ConstructorDecl, context.MkInt(42));
@@ -329,9 +292,9 @@ namespace Microsoft.Z3.Experiments.App
                 context.MkEq(a, b));
         }
 
-        private static BoolExpr CreateNullable3(Context context)
+        private static BoolExpr Nullable3(Context context)
         {
-            var (dataType, _, nullConstructor) = CreateNullableSort(context.IntSort, context);
+            var (dataType, _, nullConstructor) = NullableSort(context.IntSort, context);
             var a = context.MkConst("a", dataType);
             var b = context.MkConst("b", dataType);
             var nullConstant = context.MkApp(nullConstructor.ConstructorDecl);
@@ -340,10 +303,10 @@ namespace Microsoft.Z3.Experiments.App
                 context.MkEq(a, b));
         }
 
-        private static BoolExpr CreateNullable(Context context)
+        private static BoolExpr Nullable(Context context)
         {
-            var (dataType, valueConstructor, nullConstructor) = CreateNullableSort(context.IntSort, context);
-            var (dataType2, valueConstructor2, nullConstructor2) = CreateNullableSort(context.RealSort, context);
+            var (dataType, valueConstructor, nullConstructor) = NullableSort(context.IntSort, context);
+            var (dataType2, valueConstructor2, nullConstructor2) = NullableSort(context.RealSort, context);
             var a = context.MkConst("a", dataType);
             var b = context.MkConst("b", dataType2);
             var const0 = context.MkApp(valueConstructor.ConstructorDecl, context.MkInt(0));
@@ -358,7 +321,7 @@ namespace Microsoft.Z3.Experiments.App
                 aIsNull);
         }
 
-        private static BoolExpr CreateAlphaNumeric(Context context) =>
+        private static BoolExpr AlphaNumeric(Context context) =>
             context.MkInRe(
                 (SeqExpr)context.MkConst("x", context.StringSort),
                 context.MkLoop(
@@ -369,7 +332,7 @@ namespace Microsoft.Z3.Experiments.App
                     3, 
                     5));
 
-        private static BoolExpr CreateNonAlphaNumeric(Context context)
+        private static BoolExpr NonAlphaNumeric(Context context)
         {
             SeqExpr x = (SeqExpr)context.MkConst("x", context.StringSort);
             return 
@@ -388,7 +351,7 @@ namespace Microsoft.Z3.Experiments.App
                                 context.MkFullRe(context.MkReSort(context.StringSort))))));
         }
 
-        private static BoolExpr[] CreateNonAlphaNumeric2(Context context)
+        private static BoolExpr[] NonAlphaNumeric2(Context context)
         {
             var x = (SeqExpr)context.MkConst("x", context.StringSort);
             var y = (SeqExpr)context.MkConst("y", context.StringSort);
@@ -409,7 +372,7 @@ namespace Microsoft.Z3.Experiments.App
             };
         }
 
-        private static BoolExpr CreateIntToString(Context context)
+        private static BoolExpr IntToString(Context context)
         {
             var x = context.MkConst("x", context.IntSort);
             return context.MkEq(
@@ -417,7 +380,7 @@ namespace Microsoft.Z3.Experiments.App
                 context.MkString("4"));
         }
 
-        private static (DatatypeSort, Constructor, Constructor) CreateNullableSort(Sort sort, Context context)
+        private static (DatatypeSort, Constructor, Constructor) NullableSort(Sort sort, Context context)
         {
             var mkConstructor = context.MkConstructor("null", "isNull");
             var valueConstructor = context.MkConstructor("value", "hasValue", new[] {"value"}, new[] {sort});
@@ -425,7 +388,7 @@ namespace Microsoft.Z3.Experiments.App
             return (dataTypeSort, valueConstructor, mkConstructor);
         }
 
-        private static BoolExpr[] CreateFunctionAxiom(Context context)
+        private static BoolExpr[] FunctionAxiom(Context context)
         {
             var func1 = context.MkFuncDecl("func1", new[] { context.StringSort }, context.BoolSort);
             var func2 = context.MkFuncDecl("func2", Array.Empty<Sort>(), context.BoolSort);
@@ -444,32 +407,32 @@ namespace Microsoft.Z3.Experiments.App
             };
         }
 
-        private static BoolExpr CreateAllDistinctEmpty(Context context)
+        private static BoolExpr AllDistinctEmpty(Context context)
         {
             return context.MkDistinct();
         }
 
-        private static BoolExpr CreateAllDistinct1(Context context)
+        private static BoolExpr AllDistinct1(Context context)
         {
             return context.MkDistinct(
                 context.MkConst("a", context.StringSort));
         }
 
-        private static BoolExpr CreateAllDistinct2(Context context)
+        private static BoolExpr AllDistinct2(Context context)
         {
             return context.MkDistinct(
                 context.MkConst("a", context.StringSort),
                 context.MkConst("b", context.StringSort));
         }
 
-        private static BoolExpr CreateAllDistinctSame(Context context)
+        private static BoolExpr AllDistinctSame(Context context)
         {
             return context.MkDistinct(
                 context.MkConst("a", context.StringSort),
                 context.MkConst("a", context.StringSort));
         }
 
-        private static BoolExpr CreateDivide(Context context)
+        private static BoolExpr Divide(Context context)
         {
             return context.MkEq(
                 context.MkConst("A", context.RealSort),
@@ -478,14 +441,14 @@ namespace Microsoft.Z3.Experiments.App
                     (ArithExpr) context.MkConst("C", context.RealSort)));
         }
 
-        private static BoolExpr CreateIntDivide(Context context)
+        private static BoolExpr IntDivide(Context context)
         {
             return context.MkEq(
                 context.MkConst("A", context.IntSort),
                 context.MkMod(context.MkInt(-5), context.MkInt(3)));
         }
 
-        private static BoolExpr[] CreateAddYears(Context context)
+        private static BoolExpr[] AddYears(Context context)
         {
             const int DaysPerNormalYear = 10;
             const int YearsPerCycle = 4;
@@ -530,7 +493,7 @@ namespace Microsoft.Z3.Experiments.App
             };
         }
 
-        private static BoolExpr CreateFinite(Context context)
+        private static BoolExpr Finite(Context context)
         {
             var finiteSort = context.MkFiniteDomainSort("Sort", 10000);
             return context.MkEq(
@@ -538,7 +501,7 @@ namespace Microsoft.Z3.Experiments.App
                 context.MkConst("A", finiteSort));
         }
 
-        private static BoolExpr CreateBigIntToString(Context context)
+        private static BoolExpr BigIntToString(Context context)
         {
             var x = (IntExpr)context.MkConst("x", context.IntSort);
             var y = (SeqExpr)context.MkConst("y", context.StringSort);
@@ -551,7 +514,7 @@ namespace Microsoft.Z3.Experiments.App
                         context.MkEq(context.MkLength(y), context.MkInt(23)));
         }
 
-        private static BoolExpr CreateRound(Context context)
+        private static BoolExpr Round(Context context)
         {
             var x = (IntExpr)context.MkConst("x", context.IntSort);
             var y = (RealExpr)context.MkConst("y", context.RealSort);
@@ -560,7 +523,7 @@ namespace Microsoft.Z3.Experiments.App
                     context.MkEq(context.MkReal2Int(y), x),
                     context.MkEq(y, context.MkReal(-1, 10)));
         }
-        private static BoolExpr[] CreateCustom(Context context)
+        private static BoolExpr[] Custom(Context context)
         {
 
             return context.ParseSMTLIB2String(@"
