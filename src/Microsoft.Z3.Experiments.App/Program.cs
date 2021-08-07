@@ -13,79 +13,78 @@ namespace Microsoft.Z3.Experiments.App
 
         private static void Run()
         {
-            using (Context context = new Context(new Dictionary<string, string> { { "MODEL", "false" } }))
-            {
-                CheckSat(context, CreateExprContradiction(context));
+            using var context = new Context(new Dictionary<string, string> { { "MODEL", "false" } });
 
-                CheckSat(context, CreateBool(context));
+            CheckSat(context, CreateExprContradiction(context));
 
-                CheckSat(context, CreateExprIsEmpty(context));
+            CheckSat(context, CreateBool(context));
 
-                CheckSat(context, CreateExprIntervals(context));
+            CheckSat(context, CreateExprIsEmpty(context));
 
-                CheckSat(context, CreateReal(context));
+            CheckSat(context, CreateExprIntervals(context));
 
-                CheckSat(context, CreateReal2(context));
+            CheckSat(context, CreateReal(context));
 
-                CheckSat(context, CreateContains(context));
+            CheckSat(context, CreateReal2(context));
 
-                CheckSat(context, CreateNotContains(context));
+            CheckSat(context, CreateContains(context));
 
-                CheckSat(context, CreateNullable(context));
+            CheckSat(context, CreateNotContains(context));
 
-                CheckSat(context, CreateSatCore(context));
+            CheckSat(context, CreateNullable(context));
 
-                CheckSat(context, CreateIsEmptyFunction(context));
+            CheckSat(context, CreateSatCore(context));
 
-                //CheckSat(context, CreateLTrimFunction(context));
+            CheckSat(context, CreateIsEmptyFunction(context));
 
-                CheckSat(context, CreateLTrimFunction2(context));
+            //CheckSat(context, CreateLTrimFunction(context));
 
-                CheckSat(context, CreateTrimFunction(context));
+            CheckSat(context, CreateLTrimFunction2(context));
 
-                // CheckSat(context, CreateUpperFunction(context));
+            CheckSat(context, CreateTrimFunction(context));
 
-                CheckSat(context, CreateIntToString(context));
+            // CheckSat(context, CreateUpperFunction(context));
 
-                CheckSimplify(context);
+            CheckSat(context, CreateIntToString(context));
 
-                CheckSat(context, CreateNullable2(context));
+            CheckSimplify(context);
 
-                CheckSat(context, CreateNullable3(context));
+            CheckSat(context, CreateNullable2(context));
 
-                CheckSat(context, CreateFunctionAxiom(context));
+            CheckSat(context, CreateNullable3(context));
 
-                CheckSat(context, CreateAlphaNumeric(context));
+            CheckSat(context, CreateFunctionAxiom(context));
 
-                CheckSat(context, CreateNonAlphaNumeric(context));
+            CheckSat(context, CreateAlphaNumeric(context));
 
-                CheckSat(context, CreateNonAlphaNumeric2(context));
+            CheckSat(context, CreateNonAlphaNumeric(context));
 
-                CheckSat(context, CreateNonAlphaNumeric2(context));
+            CheckSat(context, CreateNonAlphaNumeric2(context));
 
-                CheckSat(context, CreateAllDistinctEmpty(context));
+            CheckSat(context, CreateNonAlphaNumeric2(context));
 
-                CheckSat(context, CreateAllDistinct1(context));
+            CheckSat(context, CreateAllDistinctEmpty(context));
 
-                CheckSat(context, CreateAllDistinct2(context));
+            CheckSat(context, CreateAllDistinct1(context));
 
-                CheckSat(context, CreateAllDistinctSame(context));
+            CheckSat(context, CreateAllDistinct2(context));
 
-                CheckSat(context, CreateDivide(context));
+            CheckSat(context, CreateAllDistinctSame(context));
 
-                CheckSat(context, CreateUnInterpretedFunction(context));
+            CheckSat(context, CreateDivide(context));
 
-                CheckSat(context, CreateFinite(context));
+            CheckSat(context, CreateUnInterpretedFunction(context));
 
-                CheckSat(context, CreateBigIntToString(context));
+            CheckSat(context, CreateFinite(context));
 
-                CheckSat(context, CreateIntDivide(context));
+            CheckSat(context, CreateBigIntToString(context));
 
-                CheckSat(context, CreateAddYears(context));
+            CheckSat(context, CreateIntDivide(context));
 
-                CheckSat(context, CreateRound(context));
-                CheckSat(context, CreateCustom(context));
-            }
+            CheckSat(context, CreateAddYears(context));
+
+            CheckSat(context, CreateRound(context));
+            CheckSat(context, CreateCustom(context));
         }
 
         private static BoolExpr[] CreateUpperFunction(Context context)
@@ -241,6 +240,7 @@ namespace Microsoft.Z3.Experiments.App
         private static void CheckSat(Context context, params BoolExpr[] exprs)
         {
             var solver = context.MkSolver();
+            solver.Set("timeout", 15000);
             for (var index = 0; index < exprs.Length; index++)
             {
                 var expr = exprs[index];
