@@ -6,7 +6,7 @@ using Microsoft.Z3;
 
 class Program
 {
-    private const int Timeout = 30000; //ms
+    private const int Timeout = 15000; //ms
 
     static void Main(string[] args)
     {
@@ -532,6 +532,90 @@ class Program
                 context.MkEq(y, context.MkReal(-1, 10)));
     }
 
+    private static BoolExpr[] Division(Context context)
+    {
+        var x = (RealExpr)context.MkConst("x", context.RealSort);
+        var y = (RealExpr)context.MkConst("y", context.RealSort);
+        var z = (RealExpr)context.MkConst("z", context.RealSort);
+        return new[]
+        {
+            context.MkEq(context.MkMul(x, y), z),
+            context.MkNot(context.MkEq(x, context.MkDiv(z, y))),
+            context.MkNot(context.MkEq(y, context.MkReal(0))),
+        };
+    }
+
+    [Ignore("Not supported")]
+    private static BoolExpr[] IsInteger(Context context)
+    {
+        var x = (RealExpr)context.MkConst("x", context.RealSort);
+        var y = (RealExpr)context.MkConst("y", context.RealSort);
+        var y1 = (RealExpr)context.MkConst("y1", context.RealSort);
+        var z1 = (RealExpr)context.MkConst("z1", context.RealSort);
+        return new[]
+        {
+            context.MkForall(
+                new Expr[] { x, y },
+                context.MkImplies(
+                    context.MkAnd(context.MkIsInteger(x), context.MkIsInteger(y)),
+                    context.MkIsInteger((RealExpr)context.MkMul(x, y)))),
+            context.MkNot(context.MkIsInteger(z1)),
+            context.MkIsInteger(y1),
+            context.MkIsInteger((RealExpr)context.MkDiv(z1, y1)),
+            context.MkNot(context.MkEq(y1, context.MkReal(0))),
+        };
+    }
+
+    private static BoolExpr[] IsInteger2(Context context)
+    {
+        var y = (RealExpr)context.MkConst("y", context.RealSort);
+        var z = (RealExpr)context.MkConst("z", context.RealSort);
+        var y1 = (RealExpr)context.MkConst("y1", context.RealSort);
+        var z1 = (RealExpr)context.MkConst("z1", context.RealSort);
+        return new[]
+        {
+            context.MkForall(
+                new Expr[] { z, y },
+                context.MkImplies(
+                    context.MkAnd(
+                        context.MkNot(context.MkIsInteger(z)), 
+                        context.MkIsInteger(y),
+                        context.MkNot(context.MkEq(y, context.MkReal(0)))),
+                    context.MkNot(context.MkIsInteger((RealExpr)context.MkDiv(z, y))))),
+            context.MkNot(context.MkIsInteger(z1)),
+            context.MkIsInteger(y1),
+            context.MkNot(context.MkEq(y1, context.MkReal(0))),
+            context.MkIsInteger((RealExpr)context.MkDiv(z1, y1)),
+        };
+    }
+
+    private static BoolExpr[] Floor(Context context)
+    {
+        var y = (RealExpr)context.MkConst("y", context.RealSort);
+        var z = (RealExpr)context.MkConst("z", context.RealSort);
+        var y1 = (RealExpr)context.MkConst("y1", context.RealSort);
+        var z1 = (RealExpr)context.MkConst("z1", context.RealSort);
+        return new[]
+        {
+            context.MkForall(
+                new Expr[] { z, y },
+                context.MkImplies(
+                    context.MkAnd(
+                        context.MkLt(context.MkReal2Int(z), z),
+                        context.MkEq(context.MkReal2Int(y), y),
+                        context.MkNot(context.MkEq(y, context.MkReal(0)))),
+                    context.MkLt(
+                        context.MkReal2Int((RealExpr)context.MkDiv(z, y)),
+                        (RealExpr)context.MkDiv(z, y)))),
+            context.MkLt(context.MkReal2Int(z1), z1),
+            context.MkEq(context.MkReal2Int(y1), y1),
+            context.MkNot(context.MkEq(y1, context.MkReal(0))),
+            context.MkEq(
+                context.MkReal2Int((RealExpr)context.MkDiv(z1, y1)), 
+                (RealExpr)context.MkDiv(z1, y1)),
+        };
+    }
+
     private static BoolExpr[] Custom(Context context)
     {
         return context.ParseSMTLIB2String(@"
@@ -606,25 +690,6 @@ class Program
                    (and a!8(not a!9))
                    (and a!12(not a!13)))))))
         ");
-    }
-
-    private static BoolExpr[] IsInteger(Context context)
-    {
-        var x = (RealExpr)context.MkConst("x", context.RealSort);
-        var y = (RealExpr)context.MkConst("y", context.RealSort);
-        var x1 = (RealExpr)context.MkConst("x1", context.RealSort);
-        var y1 = (RealExpr)context.MkConst("y1", context.RealSort);
-        return new[]
-        {
-            context.MkForall(
-                new Expr[] { x, y },
-                context.MkImplies(
-                    context.MkAnd(context.MkIsInteger(x), context.MkIsInteger(y)),
-                    context.MkIsInteger((RealExpr)context.MkMul(x, y)))),
-            context.MkIsInteger(x1),
-            context.MkNot(context.MkIsInteger(y1)),
-            context.MkNot(context.MkIsInteger((RealExpr)context.MkDiv(x1, y1))),
-        };
     }
 
     private class IgnoreAttribute : Attribute
