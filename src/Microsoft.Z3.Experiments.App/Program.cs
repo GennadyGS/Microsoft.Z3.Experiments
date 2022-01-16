@@ -589,7 +589,7 @@ class Program
         };
     }
 
-    private static BoolExpr[] Floor(Context context)
+    private static BoolExpr[] RealToInt(Context context)
     {
         var y = (RealExpr)context.MkConst("y", context.RealSort);
         var z = (RealExpr)context.MkConst("z", context.RealSort);
