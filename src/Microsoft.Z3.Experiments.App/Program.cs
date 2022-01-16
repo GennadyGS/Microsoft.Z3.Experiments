@@ -8,6 +8,11 @@ class Program
 {
     private const int Timeout = 15000; //ms
 
+    private static readonly Type[] CorrectOutputTypes =
+    {
+        typeof(BoolExpr), typeof(IEnumerable<BoolExpr>),
+    };
+
     static void Main(string[] args)
     {
         Run();
@@ -31,12 +36,12 @@ class Program
         }
     }
 
-    private static BoolExpr[] CheckSatForMethod(MethodInfo method, Context context)
+    private static IReadOnlyList<BoolExpr> CheckSatForMethod(MethodInfo method, Context context)
     {
         var result = method.Invoke(null, new object[] { context });
         return result switch
         {
-            BoolExpr[] boolExpressions => boolExpressions,
+            IEnumerable<BoolExpr> boolExpressions => boolExpressions.ToList(),
             BoolExpr boolExpr => new[] { boolExpr },
             _ => throw new InvalidOperationException("Unsupported result type"),
         };
@@ -52,8 +57,7 @@ class Program
         var parameters = methodInfo.GetParameters();
         return parameters.Length == 1
                && parameters.Single().ParameterType == typeof(Context)
-               && (methodInfo.ReturnType == typeof(BoolExpr)
-                   || methodInfo.ReturnType == typeof(BoolExpr[]));
+               && CorrectOutputTypes.Any(t => t.IsAssignableFrom(methodInfo.ReturnType));
     }
 
     [Ignore("Not supported by Z3")]
@@ -208,13 +212,13 @@ class Program
         };
     }
 
-    private static void CheckSat(Context context, params BoolExpr[] exprs)
+    private static void CheckSat(Context context, IReadOnlyList<BoolExpr> expressions)
     {
         var solver = context.MkSolver();
         solver.Set("timeout", Timeout);
-        for (var index = 0; index < exprs.Length; index++)
+        for (var index = 0; index < expressions.Count; index++)
         {
-            var expr = exprs[index];
+            var expr = expressions[index];
             solver.AssertAndTrack(expr, context.MkBoolConst($"{index}"));
         }
         Console.WriteLine(solver);
@@ -616,22 +620,6 @@ class Program
         };
     }
 
-    private static BoolExpr Exists(Context context)
-    {
-        var x = context.MkConst("x", context.IntSort);
-        return context.MkExists(
-            new[] { x }, 
-            context.MkEq(x, context.MkInt(5)));
-    }
-
-    private static BoolExpr ForAll(Context context)
-    {
-        var x = context.MkConst("x", context.IntSort);
-        return context.MkForall(
-            new[] { x },
-            context.MkEq(x, context.MkInt(5)));
-    }
-
     private static BoolExpr[] Custom(Context context)
     {
         return context.ParseSMTLIB2String(@"
@@ -706,6 +694,22 @@ class Program
                    (and a!8(not a!9))
                    (and a!12(not a!13)))))))
         ");
+    }
+
+    private static IEnumerable<BoolExpr> Exists(Context context)
+    {
+        var x = context.MkConst("x", context.IntSort);
+        yield return context.MkExists(
+            new[] { x }, 
+            context.MkEq(x, context.MkInt(5)));
+    }
+
+    private static IEnumerable<BoolExpr> ForAll(Context context)
+    {
+        var x = context.MkConst("x", context.IntSort);
+        yield return context.MkForall(
+            new[] { x },
+            context.MkEq(x, context.MkInt(5)));
     }
 
     private class IgnoreAttribute : Attribute
