@@ -616,6 +616,22 @@ class Program
         };
     }
 
+    private static BoolExpr Exists(Context context)
+    {
+        var x = context.MkConst("x", context.IntSort);
+        return context.MkExists(
+            new[] { x }, 
+            context.MkEq(x, context.MkInt(5)));
+    }
+
+    private static BoolExpr ForAll(Context context)
+    {
+        var x = context.MkConst("x", context.IntSort);
+        return context.MkForall(
+            new[] { x },
+            context.MkEq(x, context.MkInt(5)));
+    }
+
     private static BoolExpr[] Custom(Context context)
     {
         return context.ParseSMTLIB2String(@"
