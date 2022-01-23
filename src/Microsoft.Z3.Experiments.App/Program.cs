@@ -712,6 +712,14 @@ class Program
             context.MkEq(x, context.MkInt(5)));
     }
 
+    private static IEnumerable<BoolExpr> Lambda(Context context)
+    {
+        var x = context.MkConst("x", context.IntSort);
+        var lambda = context.MkLambda(new[] { x }, context.MkEq(x, context.MkInt(1)));
+
+        yield return (BoolExpr)lambda.Body.SubstituteVars(new Expr[] { context.MkInt(1) });
+    }
+
     private class IgnoreAttribute : Attribute
     {
         public IgnoreAttribute(string reason = null)
