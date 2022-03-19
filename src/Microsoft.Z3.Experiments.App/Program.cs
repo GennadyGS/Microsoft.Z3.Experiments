@@ -720,6 +720,24 @@ class Program
         yield return (BoolExpr)lambda.Body.SubstituteVars(new Expr[] { context.MkInt(1) });
     }
 
+    private static IEnumerable<BoolExpr> UninterpretedSort(Context context)
+    {
+        var sort = context.MkUninterpretedSort("s");
+        var x = context.MkConst("x", sort);
+        var y = context.MkConst("y", sort);
+
+        yield return context.MkNot(context.MkEq(x, y));
+    }
+
+    private static IEnumerable<BoolExpr> ConstantSequence(Context context)
+    {
+        var seq1 = context.MkConcat(context.MkUnit(context.MkInt(1)),
+            context.MkUnit(context.MkInt(2)));
+        var x = context.MkConst("x", context.MkSeqSort(context.IntSort));
+
+        yield return context.MkEq(seq1, x);
+    }
+
     private class IgnoreAttribute : Attribute
     {
         public IgnoreAttribute(string reason = null)
