@@ -394,7 +394,7 @@ class Program
 
     private static (DatatypeSort, Constructor, Constructor) NullableSort(Sort sort, Context context)
     {
-        var mkConstructor = context.MkConstructor("null", "isNull");
+        var mkConstructor = context.MkConstructor("null", "isNull", Array.Empty<string>());
         var valueConstructor = context.MkConstructor("value", "hasValue", new[] { "value" }, new[] { sort });
         var dataTypeSort = context.MkDatatypeSort("Nullable", new[] { mkConstructor, valueConstructor });
         return (dataTypeSort, valueConstructor, mkConstructor);
