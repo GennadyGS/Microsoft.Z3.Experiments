@@ -326,8 +326,8 @@ class Program
         var constNull = context.MkApp(nullConstructor.ConstructorDecl);
         var getValueDecl = valueConstructor.AccessorDecls[0];
         var aValue = (ArithExpr)context.MkApp(getValueDecl, a);
-        var aIsNull = (BoolExpr)context.MkApp(nullConstructor2.TesterDecl, a);
-        var aIsValue = (BoolExpr)context.MkApp(valueConstructor2.TesterDecl, a);
+        var aIsNull = (BoolExpr)context.MkApp(nullConstructor.TesterDecl, a);
+        var aIsValue = (BoolExpr)context.MkApp(valueConstructor.TesterDecl, a);
         return context.MkAnd(
             context.MkAnd(aIsValue, context.MkGe(aValue, context.MkInt(0))),
             aIsNull);
@@ -394,10 +394,10 @@ class Program
 
     private static (DatatypeSort, Constructor, Constructor) NullableSort(Sort sort, Context context)
     {
-        var mkConstructor = context.MkConstructor("null", "isNull", Array.Empty<string>());
+        var nullConstructor = context.MkConstructor("null", "isNull", Array.Empty<string>());
         var valueConstructor = context.MkConstructor("value", "hasValue", new[] { "value" }, new[] { sort });
-        var dataTypeSort = context.MkDatatypeSort("Nullable", new[] { mkConstructor, valueConstructor });
-        return (dataTypeSort, valueConstructor, mkConstructor);
+        var dataTypeSort = context.MkDatatypeSort($"Nullable<{sort}>", new[] { nullConstructor, valueConstructor });
+        return (dataTypeSort, valueConstructor, nullConstructor);
     }
 
     private static BoolExpr[] FunctionAxiom(Context context)
