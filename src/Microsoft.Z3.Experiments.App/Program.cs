@@ -60,6 +60,35 @@ class Program
                && CorrectOutputTypes.Any(t => t.IsAssignableFrom(methodInfo.ReturnType));
     }
 
+    private static void CheckSat(Context context, IReadOnlyList<BoolExpr> expressions)
+    {
+        var solver = context.MkSolver();
+        solver.Set("timeout", Timeout);
+        for (var index = 0; index < expressions.Count; index++)
+        {
+            var expr = expressions[index];
+            solver.AssertAndTrack(expr, context.MkBoolConst($"{index}"));
+        }
+        Console.WriteLine(solver);
+        var status = solver.Check();
+        Console.WriteLine(status);
+        if (status == Status.SATISFIABLE)
+        {
+            var model = solver.Model;
+            Console.WriteLine($"Model:({model})");
+        }
+        else
+        {
+            var unsatCore = solver.UnsatCore;
+            var unsatCoreIds = unsatCore
+                .Select(expr => int.Parse(expr.FuncDecl.Name.ToString()))
+                .ToArray();
+            Console.WriteLine($"UnsatCore:({string.Join(", ", unsatCore.Select(x => x.ToString()))})");
+            Console.WriteLine($"UnsatCoreIds:({string.Join(", ", unsatCoreIds.Select(x => x.ToString()))})");
+        }
+        Console.WriteLine("----------------------------------");
+    }
+
     [Ignore("Not supported by Z3")]
     private static BoolExpr[] UpperFunction(Context context)
     {
@@ -210,35 +239,6 @@ class Program
             context.MkNot(
                 context.MkEq(varA, context.MkString("1"))),
         };
-    }
-
-    private static void CheckSat(Context context, IReadOnlyList<BoolExpr> expressions)
-    {
-        var solver = context.MkSolver();
-        solver.Set("timeout", Timeout);
-        for (var index = 0; index < expressions.Count; index++)
-        {
-            var expr = expressions[index];
-            solver.AssertAndTrack(expr, context.MkBoolConst($"{index}"));
-        }
-        Console.WriteLine(solver);
-        var status = solver.Check();
-        Console.WriteLine(status);
-        if (status == Status.SATISFIABLE)
-        {
-            var model = solver.Model;
-            Console.WriteLine($"Model:({model})");
-        }
-        else
-        {
-            var unsatCore = solver.UnsatCore;
-            var unsatCoreIds = unsatCore
-                .Select(expr => int.Parse(expr.FuncDecl.Name.ToString()))
-                .ToArray();
-            Console.WriteLine($"UnsatCore:({string.Join(", ", unsatCore.Select(x => x.ToString()))})");
-            Console.WriteLine($"UnsatCoreIds:({string.Join(", ", unsatCoreIds.Select(x => x.ToString()))})");
-        }
-        Console.WriteLine("----------------------------------");
     }
 
     private static BoolExpr Contains(Context context)
@@ -736,6 +736,12 @@ class Program
         var x = context.MkConst("x", context.MkSeqSort(context.IntSort));
 
         yield return context.MkEq(seq1, x);
+    }
+
+    private static IEnumerable<BoolExpr> CheckReal(Context context)
+    {
+        var x = (ArithExpr)context.MkConst("x", context.RealSort);
+        yield return context.MkEq(x, context.MkReal("3.3333333333333334E-13"));
     }
 
     private class IgnoreAttribute : Attribute
