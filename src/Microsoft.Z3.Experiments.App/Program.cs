@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Z3;
 
-class Program
+namespace Microsoft.Z3.Experiments.App;
+
+internal sealed class Program
 {
     private const int Timeout = 15000; //ms
 
@@ -357,9 +358,9 @@ class Program
                         x,
                         context.MkConcat(
                             context.MkFullRe(context.MkReSort(context.StringSort)),
-                                context.MkUnion(
-                                    context.MkRange(context.MkString("\\x00"), context.MkString("\\x2F")),
-                                    context.MkRange(context.MkString("\\x3A"), context.MkString("\\xFF"))),
+                            context.MkUnion(
+                                context.MkRange(context.MkString("\\x00"), context.MkString("\\x2F")),
+                                context.MkRange(context.MkString("\\x3A"), context.MkString("\\xFF"))),
                             context.MkFullRe(context.MkReSort(context.StringSort))))));
     }
 
@@ -523,7 +524,7 @@ class Program
                 context.MkEq(
                     context.MkMod(x, context.MkInt(97)),
                     context.MkInt(1)),
-                    context.MkEq(context.MkLength(y), context.MkInt(23)));
+                context.MkEq(context.MkLength(y), context.MkInt(23)));
     }
 
     private static BoolExpr Round(Context context)
