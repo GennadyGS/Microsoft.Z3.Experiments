@@ -18,9 +18,7 @@ let rec contains (context: Context) item list =
     list |> List.map (fun listItem -> context.MkEq(listItem, item)) |> context.MkOr
 
 let rec areAllDistinct (context: Context) exprList =
-    match exprList with
-    | [] -> context.MkTrue()
-    | head :: tail -> context.MkAnd(context.MkNot(contains context head tail), tail |> areAllDistinct context)
+    context.MkDistinct(exprList |> List.toArray)
 
 let getPointSort (context: Context) =
     context.MkTupleSort(
@@ -61,14 +59,14 @@ let areAllColinear (context: Context) points =
 
 let createPoints (context: Context) name pointCount =
     let pointSort = getPointSort context
-    List.init pointCount (fun i -> context.MkConst($"{name}[{i}]", pointSort))
+    List.init pointCount (fun i -> context.MkConst($"{name}{i}", pointSort))
 
 let isStraightLine (context: Context) points =
     context.MkAnd(areAllDistinct context points, areAllColinear context points)
 
 let getProblemAssertions (context: Context) (lineCount, pointCount) =
     let lines =
-        List.init lineCount (fun i -> createPoints context $"line[{i}]" pointCount)
+        List.init lineCount (fun i -> createPoints context $"p{i}" pointCount)
 
     [ yield! lines |> List.map (isStraightLine context) ]
 
@@ -76,7 +74,7 @@ let getProblemAssertions (context: Context) (lineCount, pointCount) =
 let main _ =
     use context = new Context()
 
-    let lineCount = 2
+    let lineCount = 1
     let pointCount = 4
     let problemAssertions = getProblemAssertions context (lineCount, pointCount)
     solveAndPrintResult context problemAssertions
